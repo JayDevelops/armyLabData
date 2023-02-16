@@ -1,0 +1,61 @@
+#Variable Declarations
+
+#A1 ->  Average leaf width in cm
+#Cs ->
+#D4 ->  Detection distance
+#Fo ->  Foliage tten
+#F1 ->  Leaf area per unit vol. dense hardwood brush in m^-1
+#Ka ->
+#N1 ->  Foliated-zone numbers
+#W1 ->  Distance in meters from source to near edge of foliage        
+#W2 ->  Depth (extent) of foliage in meters
+#X2 ->
+#S3 ->  Propagation Loss cumulative
+#S4 ->  Frequency
+#S8 ->  Propagation Loss individual
+#=================================================================================
+
+#Where they are referenced in model data sheet
+#A1 ->  Column:O    Row:5
+#Cs ->  Column:     Row:
+#D4 ->  Column:     Row:
+#Fo ->  Column:     Row:
+#F1 ->  Column:N    Row:5
+#Ka ->  Column:     Row:
+#N1 ->  Column:K    Row:5
+#W1 ->  Column:L    Row:5
+#W2 ->  Column:M    Row:5
+#X2 ->  Column:     Row:
+#S3 ->  Column:     Row:
+#S4 ->  Column:     Row:
+#S8 ->  Column:     Row:
+
+
+import math
+
+def Foliage():
+    Fo = [-0.001] * 24
+    
+    if N1 > 0:
+        #If detection distance is greater than the distance from source to edge of foliage
+        if D4 > W1:
+            #Sets the distance difference to X2
+            X2 = D4 - W1
+            #If the new detection distance is greater then depth (extent) of foliage in meters
+            if X2 > W2:
+                #Set distance the depth (extent) of foliage in meters
+                X2 = W2
+            X2 = math.sqrt(X2)
+            Cons = 2.647 / math.log(10)
+
+            for I in range(10, 24):
+                Ka = (2 * math.pi * S4[I] / Cs) * Al / 100
+                if Ka < 0.401:
+                    Fo[I] = -0.01
+                elif Ka < 5:
+                    Fo[I] = -X2 * math.sqrt(Fl) * (Cons * math.log(Ka) + 1.05)
+                else:
+                    Fo[I] = -X2 * math.sqrt(Fl) * 2.9
+    for I in range(0, 24):
+        S8[I] = Fo[I]
+        S3[I] = S3[I] + S8[I]
