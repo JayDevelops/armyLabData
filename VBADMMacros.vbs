@@ -3,51 +3,51 @@ Option Base 0
 Public Pi, Log10, Log10Div10, TenDivLog10
 Public I As Integer, J As Integer, K As Integer
 Public Done As Integer, LastCol As Integer, ShapeNo As Integer
-Public T1, H1, R, Hs, Hr, Too, Em2, Em2Det, Em2Ref, Sigma, SigmaRef, SigmaDet, Co, Cs
-Public H2ref, H3ref, E1, D1, P1, P2, H2, H3, Hba, Iwthr1, M2, D5, D6, A1, B1, WindSpeed
-Public X1, X2, X3, b7, b8, Ka, W1, W2, Al, Fl, Trg, Bkg, Hth, Ai, PCor, Pc1, Pc2, Pc3, Pc4
+Public celsius_degrees_det, relative_humid_percent, R, Hs, Hr, zerDegCelsius_inKelvin, Em2, Em2Det, Em2Ref, Sigma, SigmaRef, SigmaDet, Co, Cs
+Public source_height_meas_cond, mic_height_meas_cond, observer_efficiency, calculate_d, hit_prob, false_alarm_rate, source_height_det, listener_height_det, Hba, Iwthr1, M2, D5, D6, precision_fraction, B1, WindSpeed
+Public X1, X2, X3, distance_from_source, b8, Ka, distance_frmSource_to_fol, extent_of_foliage, avg_leaf_width, leaf_area_per_unit, Trg, Bkg, Hth, Ai, PCor, Pc1, Pc2, Pc3, Pc4
 Public Ea, dBa
 
 
-Public D3 As Single     ' m Meas Dist
-Public D4 As Single     ' Detection Dist
-Public b9 As Integer     ' Barrier number
-Public N1 As Integer     ' Foliated-zone numbers
-Public S1(26) As Single  ' Target spectrum
-Public S2(26) As Single  ' MAX(S2a,S5)
-Public S2a(26) As Single ' Modified Background Noise
-Public S2b(26) As Single ' Modified Background Noise
-Public S3(26) As Single  ' Propagation Loss cumulative
-Public S4(26) As Integer ' Freq
-Public S5(26) As Single  ' Hearing Threshold
-Public S6(26) As Single  ' Background noise spectrum
-Public S7(26) As Single  ' Listener spectrum
-Public S8(26) As Single  ' Propagation Loss individual
-Public S9(26) As Single  ' Propagation Levels cumulative
-Public S10(26) As Single  ' A weight levels
-Public SNR(26) As Single  ' SNR in AI calculation
+Public m_meas_distance As Single     ' m Meas Dist
+Public detection_dist As Single     ' Detection Dist
+Public barrier_number As Integer     ' Barrier number
+Public foliated_zone_nums As Integer     ' Foliated-zone numbers
+Public target_spectrum(26) As Single  ' Target spectrum
+Public max_modBackground_thresh(26) As Single  ' MAX(mod_background_noise,hearing_threshold)
+Public mod_background_noise(26) As Single ' Modified Background Noise
+Public mod_background_noise_2(26) As Single ' Modified Background Noise
+Public prop_loss_cum(26) As Single  ' Propagation Loss cumulative
+Public freq(26) As Integer ' Freq
+Public hearing_threshold(26) As Single  ' Hearing Threshold
+Public background_noise_spec(26) As Single  ' Background noise spectrum
+Public listener_spectrum(26) As Single  ' Listener spectrum
+Public prop_loss_indiv(26) As Single  ' Propagation Loss individual
+Public prop_loss_cum_4graph(26) As Single  ' Propagation Levels cumulative
+Public A_weight_levels(26) As Single  ' A weight levels
+Public signal_noise_ratio(26) As Single  ' signal_noise_ratio in AI calculation
 Public AiWt(24) As Single ' AI weights
-Public M1(24) As Single        'Detection band
-Public AtmAbs(24) As Single    'Atmosp Absorption
-Public Ge(26) As Single        'Ground Effect
+Public detection_band(24) As Single        'Detection band
+Public atmos_absorption(24) As Single    'Atmosp Absorption
+Public ground_effect(26) As Single        'Ground Effect
 Public AtmAbsRef(26) As Single 'Reference Atmosp Absorption during measurement
-Public GeRef(26) As Single     'Reference Ground Effect during measurement
-Public Ba(26) As Single        'Barrier atten
-Public Fo(26) As Single        'Foliage tten
-Public Wind(26) As Single      'Wind refraction loss (from early version)
+Public ground_effect_reference(26) As Single     'Reference Ground Effect during measurement
+Public barrier_attenuation(26) As Single        'Barrier atten
+Public foliage_attenuation(26) As Single        'Foliage tten
+Public wind_refrac_loss(26) As Single      'wind_refrac_loss refraction loss (from early version)
 Public B3(23) As Single
-Public W3(23, 4) As Single     ' 1/3 OB Weightings for masking bands
+Public one_third_oct_band_weight(23, 4) As Single     ' 1/3 OB Weightings for masking bands
 Public Threshold As Variant
 Sub InverseDistance()
-  Pinv = 2 * TenDivLog10 * Log(D3 / D4) ' Inverse distance loss from D3 to D4
+  Pinv = 2 * TenDivLog10 * Log(m_meas_distance / detection_dist) ' Inverse distance loss from m_meas_distan to detection_dist
   For I = 0 To 23
-    S8(I) = Pinv
-    If S8(I) = 0 Then S8(I) = -0.001
-    S3(I) = S8(I)
+    prop_loss_indiv(I) = Pinv
+    If prop_loss_indiv(I) = 0 Then prop_loss_indiv(I) = -0.001
+    prop_loss_cum(I) = prop_loss_indiv(I)
   Next I
 End Sub
 Sub AnsiHumidity()
-  T = Too + T1
+  T = zerDegCelsius_inKelvin + celsius_degrees_det
   Pstar = 1
   Acr1 = 1.6E-08 * (1.377 * T / (T + 110.4)) / Pstar
   Thto = 2239.1 / T
@@ -58,28 +58,28 @@ Sub AnsiHumidity()
   Exthtn = Exp(-Thtn)
   Rtn = Thtn / (1 - Exthtn)
   Mumaxn = 0.78084 * 4 * Pi * Rtn * Rtn * Exthtn / 35
-  Cs = Co * Sqr(T / Too)
-  H = H1 * Exp(Log10 * (20.5318 - 2939 / T - 2.13759744 * Log(T))) / Pstar
+  Cs = Co * Sqr(T / zerDegCelsius_inKelvin)
+  H = relative_humid_percent * Exp(Log10 * (20.5318 - 2939 / T - 2.13759744 * Log(T))) / Pstar
   Fox = (24 + 44100 * H * (0.05 + H) / (0.391 + H)) * Sqr(293 / T)    ' Is 293 used as 273 + 20degC?
   Fni = (9 + 350 * H) * (293 / T)
-  D1 = R * 0.01
+  calculate_d = R * 0.01
   For I = 0 To 23
-    Freq2 = S4(I)
+    Freq2 = freq(I)
     Freq2 = Freq2 * Freq2
     Acr = Acr1 * Freq2
     X2o = Freq2 / (Fox * Fox)
     Avibo = 868.5 * Mumaxo * Fox / Cs * X2o / (1 + X2o)
     X2n = Freq2 / (Fni * Fni)
     Avibn = 868.5 * Mumaxn * Fni / Cs * X2n / (1 + X2n)
-    AtmAbs(I) = -D1 * (Acr + Avibo + Avibn)
+    atmos_absorption(I) = -calculate_d * (Acr + Avibo + Avibn)
   Next I
 End Sub
 Sub Atmosphere()
   AnsiHumidity
   For I = 0 To 23
-    S8(I) = AtmAbs(I) - AtmAbsRef(I)
-    If S8(I) = 0 Then S8(I) = -0.001
-    S3(I) = S3(I) + S8(I)
+    prop_loss_indiv(I) = atmos_absorption(I) - AtmAbsRef(I)
+    If prop_loss_indiv(I) = 0 Then prop_loss_indiv(I) = -0.001
+    prop_loss_cum(I) = prop_loss_cum(I) + prop_loss_indiv(I)
    Next I
 End Sub
 Sub Ingard()
@@ -92,8 +92,8 @@ Sub Ingard()
   SinTheta1 = HspHr / R2
   CosTheta1 = R / R2
   TanTheta1 = HspHr / R
-  Tk = Too + T1
-  Cs = Co * Sqr(Tk / Too)
+  Tk = zerDegCelsius_inKelvin + celsius_degrees_det
+  Cs = Co * Sqr(Tk / zerDegCelsius_inKelvin)
   Bef = Exp(Log(2) / 6)
   Mu = (Bef - 1 / Bef) / 2
   Eta = (Bef + 1 / Bef) / 2
@@ -102,7 +102,7 @@ Sub Ingard()
   L = 1.1
   I1c = Sqr(Pi) * Em2 * R1 * L
   For I = 0 To 23
-    freq = S4(I)
+    freq = freq(I)
     K1 = 2 * Pi * freq / Cs
     K1dr = K1 * Dr
     Del = R1 / (K1 * L * L)
@@ -177,111 +177,111 @@ Sub Ingard()
     Cost = Cos(Eta * K1dr + Qp)
     Qmr = Qm * R12
     I3 = (1 + Ea2) * (1 + Qmr * Qmr) + 2 * Qmr * (1 + Ea2 * Rhoa) * Cost * Sinc * Exp(-Sd2 * (1 - Rhod))
-    Ge(I) = TenDivLog10 * Log(I3)
+    ground_effect(I) = TenDivLog10 * Log(I3)
   Next I
 End Sub
 Sub GroundEffect()
-  Hs = H2
-  Hr = H3
-  R = D4
+  Hs = source_height_det
+  Hr = listener_height_det
+  R = detection_dist
   Sigma = SigmaDet
   Em2 = Em2Det
   TrgHgt = Hs
   DetHgt = Hr
   If Iwthr1 = 0 Then
-    Ingard    ' Ge
-    If WindSpeed >= 0 Then ' propagating into wind, keep calculated ground effect
+    Ingard    ' ground_effect
+    If WindSpeed >= 0 Then ' propagating into wind_refrac_loss, keep calculated ground effect
       For I = 0 To 23
-        S8(I) = Ge(I) - GeRef(I)
-        If S8(I) = 0 Then S8(I) = -0.001
-        S3(I) = S3(I) + S8(I)
+        prop_loss_indiv(I) = ground_effect(I) - ground_effect_reference(I)
+        If prop_loss_indiv(I) = 0 Then prop_loss_indiv(I) = -0.001
+        prop_loss_cum(I) = prop_loss_cum(I) + prop_loss_indiv(I)
       Next I
-    Else     ' propagating with wind, ground effect is in wind attenuation already
+    Else     ' propagating with wind_refrac_loss, ground effect is in wind_refrac_loss attenuation already
       For I = 0 To 23
-        If S8(I) = 0 Then S8(I) = -0.001
-        S8(I) = Ge(I) - GeRef(I)
-        S3(I) = S3(I) + S8(I)
+        If prop_loss_indiv(I) = 0 Then prop_loss_indiv(I) = -0.001
+        prop_loss_indiv(I) = ground_effect(I) - ground_effect_reference(I)
+        prop_loss_cum(I) = prop_loss_cum(I) + prop_loss_indiv(I)
       Next I
     End If
   Else
     If Iwthr1 < 13 Then
       'Upward(R,Attn)
-      'For I = 0 to 23 Ge(I)=Attn^(I)
-      'For I=0 to 23 do S3(I)=S3(I)+Ge(I)-GeRef(I)
-      'For I=0 to 23 do S3(I)=S3(I)+Ge(I)-GeRef(I)*1
+      'For I = 0 to 23 ground_effect(I)=Attn^(I)
+      'For I=0 to 23 do prop_loss_cum(I)=prop_loss_cum(I)+ground_effect(I)-ground_effect_reference(I)
+      'For I=0 to 23 do prop_loss_cum(I)=prop_loss_cum(I)+ground_effect(I)-ground_effect_reference(I)*1
     Else ' Iwthr1>13
       'Downwd(R,Attn)
-      'For I = 0 to 23 Ge(I)=Attn^(I)
-      'For I=0 to 23 do S3(I)=S3(I)+Ge(I)-GeRef(I)
-      'For I=0 to 23 do S3(I)=S3(I)+Ge(I)-GeRef(I)*1
+      'For I = 0 to 23 ground_effect(I)=Attn^(I)
+      'For I=0 to 23 do prop_loss_cum(I)=prop_loss_cum(I)+ground_effect(I)-ground_effect_reference(I)
+      'For I=0 to 23 do prop_loss_cum(I)=prop_loss_cum(I)+ground_effect(I)-ground_effect_reference(I)*1
     End If
   End If
 End Sub
 Function Barrier()
   For I = 0 To 23
-    Ba(I) = -0.001
+    barrier_attenuation(I) = -0.001
   Next I
-  If b9 > 0 Then
-    If D4 >= b7 Then
-      Hba = b8 - (H2 + b7 * (H3 - H2) / D4)
-      X1 = Sqr(b7 * b7 + (b8 - H2) * (b8 - H2))
-      X1 = X1 + Sqr((D4 - b7) * (D4 - b7) + (b8 - H3) * (b8 - H3))
-      X1 = X1 - Sqr(D4 * D4 + (H3 - H2) * (H3 - H2))
-      Cs = 331.4 * Sqr(1 + T1 / 273.15)
+  If barrier_number > 0 Then
+    If detection_dist >= distance_from_source Then
+      Hba = b8 - (source_height_det + distance_from_source * (listener_height_det - source_height_det) / detection_dist)
+      X1 = Sqr(distance_from_source * distance_from_source + (b8 - source_height_det) * (barrier_height_det - source_height_det))
+      X1 = X1 + Sqr((detection_dist - distance_from_source) * (detection_dist - distance_from_source) + (barrier_height_det - listener_height_det) * (barrier_height_det - listener_height_det))
+      X1 = X1 - Sqr(detection_dist * detection_dist + (listener_height_det - source_height_det) * (listener_height_det - source_height_det))
+      Cs = 331.4 * Sqr(1 + celsius_degrees_det / 273.15)
       For I = 0 To 23
         If Hba < 0 Then
-          X2 = 2 * X1 * S4(2) / Cs ' Fresnel number N
+          X2 = 2 * X1 * freq(2) / Cs ' Fresnel number N
           X3 = Sqr(2 * Pi * Abs(X2))
           X2 = -X2
           If X2 <= -0.1916 Then
-            Ba(I) = -0.01
+            barrier_attenuation(I) = -0.01
           Else
-            Ba(I) = -(5 + 2 * TenDivLog10 * Log(X3 / Tan(X3))) - 0.01
+            barrier_attenuation(I) = -(5 + 2 * TenDivLog10 * Log(X3 / Tan(X3))) - 0.01
           End If
         Else ' Hba>=0
-          X2 = 2 * X1 * S4(I) / Cs ' Fresnel number N
+          X2 = 2 * X1 * freq(I) / Cs ' Fresnel number N
           X3 = Sqr(2 * Pi * Abs(X2))
           X2 = Exp(2 * X3)
           If X2 = 1 Then
-            Ba(I) = -5 - 0.01
+            barrier_attenuation(I) = -5 - 0.01
           Else
-            Ba(I) = -(5 + 2 * TenDivLog10 * Log(X3 * (X2 + 1) / (X2 - 1))) - 0.01
-            If Ba(I) < -20 Then Ba(I) = -20
+            barrier_attenuation(I) = -(5 + 2 * TenDivLog10 * Log(X3 * (X2 + 1) / (X2 - 1))) - 0.01
+            If barrier_attenuation(I) < -20 Then barrier_attenuation(I) = -20
           End If
         End If
       Next I
     End If
   End If
   For I = 0 To 23
-    S8(I) = Ba(I)
-    S3(I) = S3(I) + S8(I)
+    prop_loss_indiv(I) = barrier_attenuation(I)
+    prop_loss_cum(I) = prop_loss_cum(I) + prop_loss_indiv(I)
   Next I
 End Function
 Function Foliage()
   For I = 0 To 23
-    Fo(I) = -0.001
+    foliage_attenuation(I) = -0.001
   Next I
-  If N1 > 0 Then
-    If D4 > W1 Then
-      X2 = D4 - W1
-      If X2 > W2 Then X2 = W2
+  If foliated_zone_nums > 0 Then
+    If detection_dist > distance_frmSource_to_fol Then
+      X2 = detection_dist - distance_frmSource_to_fol
+      If X2 > extent_of_foliage Then X2 = extent_of_foliage
       X2 = Sqr(X2)
       Cons = 2.647 / Log(10)
       For I = 10 To 23
-        Ka = (2 * Pi * S4(I) / Cs) * Al / 100
+        Ka = (2 * Pi * freq(I) / Cs) * avg_leaf_width / 100
         If Ka < 0.401 Then
-          Fo(I) = -0.01
+          foliage_attenuation(I) = -0.01
         ElseIf Ka < 5 Then
-          Fo(I) = -X2 * Sqr(Fl) * (Cons * Log(Ka) + 1.05)
+          foliage_attenuation(I) = -X2 * Sqr(leaf_area_per_unit) * (Cons * Log(Ka) + 1.05)
         Else
-          Fo(I) = -X2 * Sqr(Fl) * 2.9
+          foliage_attenuation(I) = -X2 * Sqr(leaf_area_per_unit) * 2.9
         End If
       Next I
     End If
   End If
   For I = 0 To 23
-    S8(I) = Fo(I)
-    S3(I) = S3(I) + S8(I)
+    prop_loss_indiv(I) = foliage_attenuation(I)
+    prop_loss_cum(I) = prop_loss_cum(I) + prop_loss_indiv(I)
   Next I
 End Function
 
@@ -290,45 +290,45 @@ Function NormalDeviate(P)
   NormalDeviate = T - (2.30753 + T * 0.27061) / (1 + T * (0.99229 + T * 0.04481))
 End Function
 Function Dprime()
-  If P1 > 0.5 Then
-    Z3 = NormalDeviate(1 - P1)
+  If hit_prob > 0.5 Then
+    Z3 = NormalDeviate(1 - hit_prob)
   Else
-    Z3 = NormalDeviate(P1)
+    Z3 = NormalDeviate(hit_prob)
   End If
-  If P2 > 0.5 Then
-    Z = NormalDeviate(1 - P2)
+  If false_alarm_rate > 0.5 Then
+    Z = NormalDeviate(1 - false_alarm_rate)
   Else
-    Z = NormalDeviate(P2)
+    Z = NormalDeviate(false_alarm_rate)
   End If
-  D1 = Z3 - Z
-  If P1 > 0.5 Then
-    If P2 > 0.5 Then
-      D1 = Z3 - Z
+  calculate_d = Z3 - Z
+  If hit_prob > 0.5 Then
+    If false_alarm_rate > 0.5 Then
+      calculate_d = Z3 - Z
     Else
-      D1 = Z3 + Z
+      calculate_d = Z3 + Z
     End If
   Else
-    D1 = Z - Z3
+    calculate_d = Z - Z3
   End If
-  Dprime = D1
+  Dprime = calculate_d
   For I = 0 To 23
     If I > 10 Then
-      S2a(I) = S6(I) + TenDivLog10 * Log(D1 / E1 / B3(I))
+      mod_background_noise(I) = background_noise_spec(I) + TenDivLog10 * Log(calculate_d / observer_efficiency / B3(I))
     Else
       E4 = 0
       For J = 0 To 4
         I0 = I + J - 2
-        W4 = W3(I, J)
-        If (W4 > 0) And (I0 >= 0) Then E4 = E4 + W4 * Exp(Log10Div10 * S6(I0))
+        W4 = one_third_oct_band_weight(I, J)
+        If (W4 > 0) And (I0 >= 0) Then E4 = E4 + W4 * Exp(Log10Div10 * background_noise_spec(I0))
       Next J
-      S2a(I) = TenDivLog10 * Log(E4 * D1 / E1 / B3(I))
+      mod_background_noise(I) = TenDivLog10 * Log(E4 * calculate_d / observer_efficiency / B3(I))
     End If
-    If S5(I) > S2a(I) Then
-      S2(I) = S5(I)
+    If hearing_threshold(I) > mod_background_noise(I) Then
+      max_modBackground_thresh(I) = hearing_threshold(I)
     Else
-      S2(I) = S2a(I)
+      max_modBackground_thresh(I) = mod_background_noise(I)
     End If
-    S2b(I) = S2(I)
+    mod_background_noise_2(I) = max_modBackground_thresh(I)
   Next I
 End Function
 Function ComplexDiv(A, B, C, D, E, F) As Integer
@@ -350,25 +350,25 @@ End Function
 Sub SignalNoise()
   For I = 0 To 23
     If I > 10 Then
-      M1(I) = S1(I) + S3(I) - S2(I)
+      detection_band(I) = target_spectrum(I) + prop_loss_cum(I) - max_modBackground_thresh(I)
     Else
       E3 = 0
       For J = 0 To 4
         I0 = I + J - 2
-        W4 = W3(I, J)
+        W4 = one_third_oct_band_weight(I, J)
         If (W4 > 0) And (I0 >= 0) Then
-          E3 = E3 + W4 * Exp(Log10Div10 * (S1(I0) + S3(I0)))
+          E3 = E3 + W4 * Exp(Log10Div10 * (target_spectrum(I0) + prop_loss_cum(I0)))
         End If
       Next J
-      M1(I) = TenDivLog10 * Log(E3) - S2(I)
+      detection_band(I) = TenDivLog10 * Log(E3) - max_modBackground_thresh(I)
     End If
-    S7(I) = M1(I) + S2(I)
+    listener_spectrum(I) = detection_band(I) + max_modBackground_thresh(I)
   Next I
-  M2 = M1(0)
+  M2 = detection_band(0)
   B1 = 0
   For I = 1 To 23
-    If M1(I) >= M2 Then
-      M2 = M1(I)
+    If detection_band(I) >= M2 Then
+      M2 = detection_band(I)
       B1 = I
     End If
   Next I
@@ -384,34 +384,34 @@ Sub Propagate()
 End Sub
 Sub BinarySearch()
   Z9 = -1
-  D4 = D3 * 25
+  detection_dist = m_meas_distance * 25
   Do
     Z9 = Z9 + 1
-    D5 = D4
-    D4 = 2 * D4
-    D6 = D4
+    D5 = detection_dist
+    detection_dist = 2 * detection_dist
+    D6 = detection_dist
     Propagate
   Loop Until M2 < 0
   If Z9 = 0 Then
     Do
-      D6 = D4
-      D4 = D4 / 2
-      D5 = D4
+      D6 = detection_dist
+      detection_dist = detection_dist / 2
+      D5 = detection_dist
       Propagate
     Loop Until M2 > 0
   End If
   Do
-    D4 = (D5 + D6) / 2
+    detection_dist = (D5 + D6) / 2
     Propagate
     If M2 > 0 Then
-      D5 = D4
+      D5 = detection_dist
     Else
-      D6 = D4
+      D6 = detection_dist
     End If
-  Loop Until Abs(D6 - D5) < A1 * D4
-  'Target detectable at D4:3:2 meters +/- (A1*D4):3:2 meters in S4[B1] Hz Band
-  'at (S1(B1)+S3(B1)):2:1 dB.
-  If S5(B1) < S2a(B1) Then
+  Loop Until Abs(D6 - D5) < precision_fraction * detection_dist
+  'Target detectable at detection_dist:3:2 meters +/- (precision_fraction*detection_dist):3:2 meters in freq[B1] Hz Band
+  'at (target_spectrum(B1)+prop_loss_cum(B1)):2:1 dB.
+  If hearing_threshold(B1) < mod_background_noise(B1) Then
   'Detection limited by background noise.
   Else
   'Detection limited by human threshold of hearing.
@@ -420,60 +420,60 @@ End Sub
 
 Sub BinarySearchA()
   Z9 = -1
-  D4 = D3 * 25
+  detection_dist = m_meas_distance * 25
   Do
     Z9 = Z9 + 1
-    D5 = D4
-    D4 = 2 * D4
-    D6 = D4
+    D5 = detection_dist
+    detection_dist = 2 * detection_dist
+    D6 = detection_dist
     Propagate
-    Ea = 0: For I = 0 To 23: Ea = Ea + Exp(Log10Div10 * (S1(I) + S3(I) + S10(I))): Next I
-    S3(24) = TenDivLog10 * Log(Ea)
-  Loop Until S3(24) < dBa
+    Ea = 0: For I = 0 To 23: Ea = Ea + Exp(Log10Div10 * (target_spectrum(I) + prop_loss_cum(I) + A_weight_levels(I))): Next I
+    prop_loss_cum(24) = TenDivLog10 * Log(Ea)
+  Loop Until prop_loss_cum(24) < dBa
   If Z9 = 0 Then
     Do
-      D6 = D4
-      D4 = D4 / 2
-      D5 = D4
+      D6 = detection_dist
+      detection_dist = detection_dist / 2
+      D5 = detection_dist
       Propagate
-      Ea = 0: For I = 0 To 23: Ea = Ea + Exp(Log10Div10 * (S1(I) + S3(I) + S10(I))): Next I
-      S3(24) = TenDivLog10 * Log(Ea)
-    Loop Until S3(24) > dBa
+      Ea = 0: For I = 0 To 23: Ea = Ea + Exp(Log10Div10 * (target_spectrum(I) + prop_loss_cum(I) + A_weight_levels(I))): Next I
+      prop_loss_cum(24) = TenDivLog10 * Log(Ea)
+    Loop Until prop_loss_cum(24) > dBa
   End If
   Do
-    D4 = (D5 + D6) / 2
+    detection_dist = (D5 + D6) / 2
     Propagate
-    Ea = 0: For I = 0 To 23: Ea = Ea + Exp(Log10Div10 * (S1(I) + S3(I) + S10(I))): Next I
-    S3(24) = TenDivLog10 * Log(Ea)
-    If S3(24) > dBa Then
-      D5 = D4
+    Ea = 0: For I = 0 To 23: Ea = Ea + Exp(Log10Div10 * (target_spectrum(I) + prop_loss_cum(I) + A_weight_levels(I))): Next I
+    prop_loss_cum(24) = TenDivLog10 * Log(Ea)
+    If prop_loss_cum(24) > dBa Then
+      D5 = detection_dist
     Else
-      D6 = D4
+      D6 = detection_dist
     End If
-  Loop Until Abs(D6 - D5) < A1 * D4
+  Loop Until Abs(D6 - D5) < precision_fraction * detection_dist
 End Sub
 
 Sub Reverse()
   Propagate
 End Sub
 Sub ReferenceCalc()
-  Hs = H2ref
-  Hr = H3ref
-  R = D3
+  Hs = source_height_meas_cond
+  Hr = mic_height_meas_cond
+  R = m_meas_distance
   Sigma = SigmaRef
   Em2 = Em2Ref
-  Ingard  'Ge
-  AnsiHumidity  ' AtmAbs
+  Ingard  'ground_effect
+  AnsiHumidity  ' atmos_absorption
   For I = 0 To 23
-    GeRef(I) = Ge(I)
-    AtmAbsRef(I) = AtmAbs(I)
+    ground_effect_reference(I) = ground_effect(I)
+    AtmAbsRef(I) = atmos_absorption(I)
   Next I
 End Sub
 Function TargetdBA()
   Dim E As Double
   E = 0
   For I = 0 To 23
-    E = E + Exp(Log10Div10 * (S1(I) + S10(I)))
+    E = E + Exp(Log10Div10 * (target_spectrum(I) + A_weight_levels(I)))
   Next I
   TargetdBA = TenDivLog10 * Log(E)
 End Function
@@ -481,7 +481,7 @@ Function ListenerdBA()
   Dim E As Double
   E = 0
   For I = 0 To 23
-    E = E + Exp(Log10Div10 * (S1(I) + S3(I) + S10(I)))
+    E = E + Exp(Log10Div10 * (target_spectrum(I) + prop_loss_cum(I) + A_weight_levels(I)))
   Next I
   ListenerdBA = TenDivLog10 * Log(E)
 End Function
@@ -489,7 +489,7 @@ Function BkgdBA()
   Dim E As Double
   E = 0
   For I = 0 To 23
-    E = E + Exp(Log10Div10 * (S6(I) + S10(I)))
+    E = E + Exp(Log10Div10 * (background_noise_spec(I) + A_weight_levels(I)))
   Next I
   BkgdBA = TenDivLog10 * Log(E)
 End Function
@@ -500,20 +500,20 @@ Sub InitMacros()
   Bkg = Sheets("Model").Range("C6").Value
   Hth = Sheets("Model").Range("D6").Value
   For I = 0 To 23
-    S4(I) = Sheets("Data").Range("A2").Offset(I, 0).Value
-    Sheets("Model").Range("A8").Offset(I, 0).Value = S4(I)
+    freq(I) = Sheets("Data").Range("A2").Offset(I, 0).Value
+    Sheets("Model").Range("A8").Offset(I, 0).Value = freq(I)
   Next I
   If Trg <> 0 Then
     For I = 0 To 23
-      S1(I) = Sheets("Data").Range("A2").Offset(I, Trg).Value
-      Sheets("Model").Range("A8").Offset(I, 1).Value = S1(I)
+      target_spectrum(I) = Sheets("Data").Range("A2").Offset(I, Trg).Value
+      Sheets("Model").Range("A8").Offset(I, 1).Value = target_spectrum(I)
     Next I
-    D3 = Sheets("Data").Range("A2").Offset(24, Trg).Value
-    Sheets("Model").Range("C3").Value = D3
+    m_meas_distance = Sheets("Data").Range("A2").Offset(24, Trg).Value
+    Sheets("Model").Range("C3").Value = m_meas_distance
   Else
     Set Rg1 = Sheets("Model").Range("C3")
     If IsNumeric(Rg1) And Len(Rg1) > 0 Then
-      D3 = Rg1.Value
+      m_meas_distance = Rg1.Value
     Else
       MsgBox ("Enter a Distance in meters in Cell C3 for Microphone from Source")
       End
@@ -521,22 +521,22 @@ Sub InitMacros()
   End If
   If Bkg <> 0 Then
     For I = 0 To 23
-      S6(I) = Sheets("Data").Range("A2").Offset(I, Bkg).Value
-      Sheets("Model").Range("A8").Offset(I, 2).Value = S6(I)
+      background_noise_spec(I) = Sheets("Data").Range("A2").Offset(I, Bkg).Value
+      Sheets("Model").Range("A8").Offset(I, 2).Value = background_noise_spec(I)
     Next I
   End If
   If Hth <> 0 Then
     For I = 0 To 23
-      S5(I) = Sheets("Data").Range("A2").Offset(I, Hth).Value
-      Sheets("Model").Range("A8").Offset(I, 3).Value = S5(I)
+      hearing_threshold(I) = Sheets("Data").Range("A2").Offset(I, Hth).Value
+      Sheets("Model").Range("A8").Offset(I, 3).Value = hearing_threshold(I)
     Next I
   End If
-  For I = 0 To 23: S10(I) = Sheets("Data").Range("A2").Offset(I, 35).Value:  Next I  ' 35 A weight levels
+  For I = 0 To 23: A_weight_levels(I) = Sheets("Data").Range("A2").Offset(I, 35).Value:  Next I  ' 35 A weight levels
   For I = 0 To 23: AiWt(I) = Sheets("Data").Range("A2").Offset(I, 37).Value: Next I ' 37 AI weight levels
   ColOffset = 29
   For I = 0 To 23
     For J = 0 To 4
-      W3(I, J) = Sheets("Data").Range("A2").Offset(I, J + ColOffset).Value
+      one_third_oct_band_weight(I, J) = Sheets("Data").Range("A2").Offset(I, J + ColOffset).Value
     Next J
     J = 5
     B3(I) = Sheets("Data").Range("A2").Offset(I, J + ColOffset).Value
@@ -547,47 +547,47 @@ Sub InitMacros()
   TenDivLog10 = 1 / Log10Div10
   Log10 = 2.302585093
   Co = 331.32
-  Too = 273.15
-  A1 = 0.001 ' precision fraction
-  H2ref = Range("A3").Value ' m Source Height meas
-  H3ref = Range("B3").Value ' m Mic Height meas
-  ' D3 m in "C3"  Mic distance from source
-  Tref = Range("D3").Value     ' Deg C meas
+  zerDegCelsius_inKelvin = 273.15
+  precision_fraction = 0.001 ' precision fraction
+  source_height_meas_cond = Range("A3").Value ' m Source Height meas
+  mic_height_meas_cond = Range("B3").Value ' m Mic Height meas
+  ' m_meas_distance m in "C3"  Mic distance from source
+  Tref = Range("m_meas_distance").Value     ' Deg C meas
   Href = Range("E3").Value     ' % r.h. meas
   SigmaRef = Range("F3").Value ' m Flow resistivity meas
   Em2Ref = Range("G3").Value   ' Em2 turbulence factor meas
-  T1 = Tref
-  H1 = Href
+  celsius_degrees_det = Tref
+  relative_humid_percent = Href
   
   ReferenceCalc
   
-  H2 = Range("H3").Value ' m Source Height det
-  H3 = Range("I3").Value ' m Listener Height det
-  T1 = Range("J3").Value    ' Deg C det
-  H1 = Range("K3").Value    ' % r.h. det
+  source_height_det = Range("H3").Value ' m Source Height (detection conditions)
+  listener_height_det = Range("I3").Value ' m Listener Height det
+  celsius_degrees_det = Range("J3").Value    ' Deg C det
+  relative_humid_percent = Range("K3").Value    ' % relative humidity det
   SigmaDet = Range("L3").Value ' m Flow resistivity det
   Em2Det = Range("M3").Value   ' Em2 turbulence factor det
-  WindSpeed = Range("N3").Value ' Wind speed det
-  E1 = Range("r3").Value  ' Observer efficiency
-  P1 = Range("s3").Value  ' Hit prob
-  P2 = Range("t3").Value  ' False alarm prop
-  D1 = Dprime             ' Calculate d' statistic
-  Range("u3").Value = D1
+  WindSpeed = Range("N3").Value ' wind_refrac_loss speed det
+  observer_efficiency = Range("r3").Value  ' Observer efficiency
+  hit_prob = Range("s3").Value  ' Hit prob
+  false_alarm_rate = Range("t3").Value  ' False alarm prop
+  calculate_d = Dprime             ' Calculate d' statistic
+  Range("u3").Value = calculate_d
   WindFlag = 0
   WindDir = " Upwind"
-  b9 = Range("H5").Value ' barrier? 0 or 1
-  b7 = Range("I5").Value ' distance from source m
-  b8 = Range("J5").Value ' height m
-  N1 = Range("K5").Value ' foliage? 0 or 1
-  W1 = Range("L5").Value ' distance in meters from source to near edge of foliage
-  W2 = Range("M5").Value ' depth (extent) of foliage in meters
-  Fl = Range("N5").Value ' leaf area per unit vol dense hardwood brush in m^-1
-  Al = Range("O5").Value ' average leaf width in cm.
-  F7 = 1   ' Type of surface
+  barrier_number = Range("H5").Value ' barrier? 0 or 1
+  distance_from_source = Range("I5").Value ' distance from source m
+  barrier_height_det = Range("J5").Value ' barrier height detec m
+  foliated_zone_nums = Range("K5").Value ' foliage? 0 or 1
+  distance_frmSource_to_fol = Range("L5").Value ' distance in meters from source to near edge of foliage
+  extent_of_foliage = Range("M5").Value ' depth (extent) of foliage in meters
+  leaf_area_per_unit = Range("N5").Value ' leaf area per unit vol dense hardwood brush in m^-1
+  avg_leaf_width = Range("O5").Value ' average leaf width in cm.
+  type_of_surface = 1   ' Type of surface
   Iwthr1 = 0
   Surface = "Grass"
-  Bnumber = 11 ' Default background number 12=G.C. 11=Low EPA
-  Tnumber = 3   ' Typical vehicle
+  deflt_bkg_num = 11 ' Default background number 12=G.C. 11=Low EPA
+  typical_vehicle = 3   ' Typical vehicle
   Hnumber = 2  ' ISO Hearing Threshold for Pure tones
 
 End Sub
@@ -608,9 +608,9 @@ Sub Macro1()
   ActiveCell.Offset(4, 0).Value = "Detect Level (dBA)"
   ActiveCell.Offset(5, 0).Value = "Background Noise Level (dBA)"
   ActiveCell.Offset(0, 4).Value = TargetdBA
-  ActiveCell.Offset(1, 4).Value = D4
-  ActiveCell.Offset(2, 4).Value = S4(B1)
-  ActiveCell.Offset(3, 4).Value = S1(B1) + S3(B1)
+  ActiveCell.Offset(1, 4).Value = detection_dist
+  ActiveCell.Offset(2, 4).Value = freq(B1)
+  ActiveCell.Offset(3, 4).Value = target_spectrum(B1) + prop_loss_cum(B1)
   ActiveCell.Offset(4, 4).Value = ListenerdBA
   ActiveCell.Offset(5, 4).Value = BkgdBA
   Range("G32:J37").Select
@@ -632,19 +632,19 @@ Sub Macro1()
   Range("A8").Select
 
   InverseDistance
-  K = 4: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 4: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   Atmosphere
-  K = 5: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 5: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   GroundEffect
-  K = 7: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 7: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   Barrier
-  K = 8: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 8: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   Foliage
-  K = 9:  For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
-  K = 10: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S1(I) + S3(I): Next I
-  K = 11: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S7(I): Next I
-  K = 12: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S2a(I): Next I
-  K = 13: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S2(I): Next I
+  K = 9:  For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
+  K = 10: For I = 0 To 23: ActiveCell.Offset(I, K).Value = target_spectrum(I) + prop_loss_cum(I): Next I
+  K = 11: For I = 0 To 23: ActiveCell.Offset(I, K).Value = listener_spectrum(I): Next I
+  K = 12: For I = 0 To 23: ActiveCell.Offset(I, K).Value = mod_background_noise(I): Next I
+  K = 13: For I = 0 To 23: ActiveCell.Offset(I, K).Value = max_modBackground_thresh(I): Next I
   Range("B8:B31").Select:  Selection.Interior.ColorIndex = 34
   Range("c8:c31").Select:  Selection.Interior.ColorIndex = 38
   Range("k8:k31").Select:  Selection.Interior.ColorIndex = 35
@@ -662,7 +662,7 @@ Sub Macro2()
   InitMacros
   Set Rg2 = Sheets("Model").Range("C4")
   If IsNumeric(Rg2) And Len(Rg2) > 0 Then
-    D4 = Rg2.Value
+    detection_dist = Rg2.Value
   Else
     MsgBox ("Enter a Distance in meters in Cell C4 for Listener from Source")
     End
@@ -703,23 +703,23 @@ Sub Macro2()
   ActiveCell.Offset(5, 4).Value = ""
   Range("A8").Select
   K = 1: For I = 0 To 23
-    ActiveCell.Offset(I, K).Value = S2b(I) - S3(I)
-    S1(I) = S2b(I) - S3(I)
+    ActiveCell.Offset(I, K).Value = mod_background_noise_2(I) - prop_loss_cum(I)
+    target_spectrum(I) = mod_background_noise_2(I) - prop_loss_cum(I)
   Next I
   InverseDistance
-  K = 4: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 4: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   Atmosphere
-  K = 5: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 5: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   GroundEffect
-  K = 7: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 7: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   Barrier
-  K = 8: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 8: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   Foliage
-  K = 9:  For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
-  K = 10: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S1(I) + S3(I): Next I
-  K = 11: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S7(I): Next I
-  K = 12: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S2a(I): Next I
-  K = 13: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S2(I): Next I
+  K = 9:  For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
+  K = 10: For I = 0 To 23: ActiveCell.Offset(I, K).Value = target_spectrum(I) + prop_loss_cum(I): Next I
+  K = 11: For I = 0 To 23: ActiveCell.Offset(I, K).Value = listener_spectrum(I): Next I
+  K = 12: For I = 0 To 23: ActiveCell.Offset(I, K).Value = mod_background_noise(I): Next I
+  K = 13: For I = 0 To 23: ActiveCell.Offset(I, K).Value = max_modBackground_thresh(I): Next I
   
   Range("B8:B31").Select:  Selection.Interior.ColorIndex = 34
   Range("c8:c31").Select:  Selection.Interior.ColorIndex = 38
@@ -739,7 +739,7 @@ Sub Macro3()
   InitMacros
   Set Rg2 = Sheets("Model").Range("C4")
   If IsNumeric(Rg2) And Len(Rg2) > 0 Then
-    D4 = Rg2.Value
+    detection_dist = Rg2.Value
   Else
     MsgBox ("Enter a Distance in meters in Cell C4 for Listener from Source")
     End
@@ -756,9 +756,9 @@ Sub Macro3()
   ActiveCell.Offset(4, 0).Value = "Detect Level (dBA)"
   ActiveCell.Offset(5, 0).Value = "Background Noise Level (dBA)"
   ActiveCell.Offset(0, 4).Value = TargetdBA
-  ActiveCell.Offset(1, 4).Value = D4
-  ActiveCell.Offset(2, 4).Value = S4(B1)
-  ActiveCell.Offset(3, 4).Value = S1(B1) + S3(B1)
+  ActiveCell.Offset(1, 4).Value = detection_dist
+  ActiveCell.Offset(2, 4).Value = freq(B1)
+  ActiveCell.Offset(3, 4).Value = target_spectrum(B1) + prop_loss_cum(B1)
   ActiveCell.Offset(4, 4).Value = ListenerdBA
   ActiveCell.Offset(5, 4).Value = BkgdBA
   Range("G32:J37").Select
@@ -780,19 +780,19 @@ Sub Macro3()
   Range("A8").Select
 
   InverseDistance
-  K = 4: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 4: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   Atmosphere
-  K = 5: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 5: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   GroundEffect
-  K = 7: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 7: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   Barrier
-  K = 8: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 8: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   Foliage
-  K = 9:  For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
-  K = 10: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S1(I) + S3(I): Next I
-  K = 11: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S7(I): Next I
-  K = 12: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S2a(I): Next I
-  K = 13: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S2(I): Next I
+  K = 9:  For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
+  K = 10: For I = 0 To 23: ActiveCell.Offset(I, K).Value = target_spectrum(I) + prop_loss_cum(I): Next I
+  K = 11: For I = 0 To 23: ActiveCell.Offset(I, K).Value = listener_spectrum(I): Next I
+  K = 12: For I = 0 To 23: ActiveCell.Offset(I, K).Value = mod_background_noise(I): Next I
+  K = 13: For I = 0 To 23: ActiveCell.Offset(I, K).Value = max_modBackground_thresh(I): Next I
   Range("B8:B31").Select:  Selection.Interior.ColorIndex = 34
   Range("c8:c31").Select:  Selection.Interior.ColorIndex = 38
   Range("k8:k31").Select:  Selection.Interior.ColorIndex = 35
@@ -821,7 +821,7 @@ Sub Macro4()
   ActiveCell.Offset(4, 0).Value = "Detect Level (dBA)"
   ActiveCell.Offset(5, 0).Value = "Background Noise Level (dBA)"
   ActiveCell.Offset(0, 4).Value = TargetdBA
-  ActiveCell.Offset(1, 4).Value = D4
+  ActiveCell.Offset(1, 4).Value = detection_dist
   ActiveCell.Offset(2, 4).Value = ""
   ActiveCell.Offset(3, 4).Value = ""
   ActiveCell.Offset(4, 4).Value = ListenerdBA
@@ -845,19 +845,19 @@ Sub Macro4()
   Range("A8").Select
 
   InverseDistance
-  K = 4: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 4: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   Atmosphere
-  K = 5: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 5: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   GroundEffect
-  K = 7: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 7: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   Barrier
-  K = 8: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 8: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   Foliage
-  K = 9:  For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
-  K = 10: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S1(I) + S3(I): Next I
-  K = 11: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S7(I): Next I
-  K = 12: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S2a(I): Next I
-  K = 13: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S2(I): Next I
+  K = 9:  For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
+  K = 10: For I = 0 To 23: ActiveCell.Offset(I, K).Value = target_spectrum(I) + prop_loss_cum(I): Next I
+  K = 11: For I = 0 To 23: ActiveCell.Offset(I, K).Value = listener_spectrum(I): Next I
+  K = 12: For I = 0 To 23: ActiveCell.Offset(I, K).Value = mod_background_noise(I): Next I
+  K = 13: For I = 0 To 23: ActiveCell.Offset(I, K).Value = max_modBackground_thresh(I): Next I
   Range("B8:B31").Select:  Selection.Interior.ColorIndex = 34
   Range("c8:c31").Select:  Selection.Interior.ColorIndex = 38
   Range("k8:k31").Select:  Selection.Interior.ColorIndex = 35
@@ -883,23 +883,23 @@ Sub Macro5()
   InitMacros
   Set Rg2 = Sheets("Model").Range("C4")
   If IsNumeric(Rg2) And Len(Rg2) > 0 Then
-    D4 = Rg2.Value
+    detection_dist = Rg2.Value
   Else
     MsgBox ("Enter a Distance in meters in Cell C4 for Listener from Source")
     End
   End If
   Propagate
   Ai = 0
-  For I = 0 To 23 ' S2=max(S5,S6)
-    If S5(I) > S6(I) Then
-       S2(I) = S5(I)
+  For I = 0 To 23 ' max_modBackground_thresh=max(hearing_threshold,background_noise_spec)
+    If hearing_threshold(I) > background_noise_spec(I) Then
+       max_modBackground_thresh(I) = hearing_threshold(I)
     Else
-      S2(I) = S6(I)
+      max_modBackground_thresh(I) = background_noise_spec(I)
     End If
-    SNR(I) = S1(I) + S3(I) - S2(I)
-    If SNR(I) > 30 Then SNR(I) = 30
-    If SNR(I) < 0 Then SNR(I) = 0
-    Ai = Ai + SNR(I) * AiWt(I)
+    signal_noise_ratio(I) = target_spectrum(I) + prop_loss_cum(I) - max_modBackground_thresh(I)
+    If signal_noise_ratio(I) > 30 Then signal_noise_ratio(I) = 30
+    If signal_noise_ratio(I) < 0 Then signal_noise_ratio(I) = 0
+    Ai = Ai + signal_noise_ratio(I) * AiWt(I)
   Next I
   PCor = Ai * (108.9 + Ai * (370.2 + Ai * (-2527.1 + Ai * 4485.3)))
   PCor = PCor / (1 + Ai * (-5.839 + Ai * (21.89 + Ai * (-45.01 + Ai * 52.34))))
@@ -947,18 +947,18 @@ Sub Macro5()
   ActiveCell.Offset(5, 4).Value = Pc3
 
   Range("A8").Select
-  K = 1: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S2b(I) - S3(I): Next I
+  K = 1: For I = 0 To 23: ActiveCell.Offset(I, K).Value = mod_background_noise_2(I) - prop_loss_cum(I): Next I
   InverseDistance
-  K = 4: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 4: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   Atmosphere
-  K = 5: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 5: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   GroundEffect
-  K = 7: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 7: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   Barrier
-  K = 8: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
+  K = 8: For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
   Foliage
-  K = 9:  For I = 0 To 23: ActiveCell.Offset(I, K).Value = S8(I): Next I
-  K = 10: For I = 0 To 23: ActiveCell.Offset(I, K).Value = S1(I) + S3(I): Next I
+  K = 9:  For I = 0 To 23: ActiveCell.Offset(I, K).Value = prop_loss_indiv(I): Next I
+  K = 10: For I = 0 To 23: ActiveCell.Offset(I, K).Value = target_spectrum(I) + prop_loss_cum(I): Next I
   Range("B8:B31").Select:  Selection.Interior.ColorIndex = 34
   Range("c8:c31").Select:  Selection.Interior.ColorIndex = 38
   Range("k8:k31").Select:  Selection.Interior.ColorIndex = 35
@@ -978,9 +978,9 @@ Sub Macro5()
   Sheets("Model").Select
   Range("L6").Offset(0).Select
   ActiveSheet.Paste
-  ShapeNo = 7: For I = 0 To 23: S9(I) = S2(I): Next I: TraceXY  ' thick solid red
-  ShapeNo = 10: For I = 0 To 23: S9(I) = S1(I) + S3(I): Next I: TraceXY ' thick solid green
-  ShapeNo = 1: For I = 0 To 23: S9(I) = S1(I): Next I:  TraceXY   ' thick solid cyan
+  ShapeNo = 7: For I = 0 To 23: prop_loss_cum_4graph(I) = max_modBackground_thresh(I): Next I: TraceXY  ' thick solid red
+  ShapeNo = 10: For I = 0 To 23: prop_loss_cum_4graph(I) = target_spectrum(I) + prop_loss_cum(I): Next I: TraceXY ' thick solid green
+  ShapeNo = 1: For I = 0 To 23: prop_loss_cum_4graph(I) = target_spectrum(I): Next I:  TraceXY   ' thick solid cyan
 End Sub
 Sub AddChartSheet()
   Dim chtChart As Chart
@@ -1061,12 +1061,12 @@ Sub TraceXY()
   
   If ShapeNo = 2 Then Npts = 11 Else Npts = 23
   'First point
-  Y = S9(0): If Y < Ymin Then Y = Ymin: If Y > Ymax Then Y = Ymax
+  Y = prop_loss_cum_4graph(0): If Y < Ymin Then Y = Ymin: If Y > Ymax Then Y = Ymax
   Xnode = Xleft + (1 - Xmin) * Xwidth / (Xmax - Xmin)
   Ynode = Ytop + (Ymax - Y) * Yheight / (Ymax - Ymin)
   Set myBuilder = myCht.Shapes.BuildFreeform(msoEditingAuto, Xnode, Ynode)
   For Ipts = 1 To Npts
-    Y = S9(Ipts): If Y < Ymin Then Y = Ymin: If Y > Ymax Then Y = Ymax
+    Y = prop_loss_cum_4graph(Ipts): If Y < Ymin Then Y = Ymin: If Y > Ymax Then Y = Ymax
     Xnode = Xleft + (Ipts + 1 - Xmin) * Xwidth / (Xmax - Xmin)
     Ynode = Ytop + (Ymax - Y) * Yheight / (Ymax - Ymin)
     myBuilder.AddNodes msoSegmentLine, msoEditingAuto, Xnode, Ynode
@@ -1145,25 +1145,25 @@ Sub DrawFilledPolygon()
   Ymin = myCht.Axes(2).MinimumScale
   Ymax = myCht.Axes(2).MaximumScale
 
-  Y = S9(0) + S8(0): If Y < Ymin Then Y = Ymin: If Y > Ymax Then Y = Ymax
+  Y = prop_loss_cum_4graph(0) + prop_loss_indiv(0): If Y < Ymin Then Y = Ymin: If Y > Ymax Then Y = Ymax
   'First point
   Xnode = Xleft + (1 - Xmin) * Xwidth / (Xmax - Xmin)
   Ynode = Ytop + (Ymax - Y) * Yheight / (Ymax - Ymin)
   Set myBuilder = myCht.Shapes.BuildFreeform(msoEditingAuto, Xnode, Ynode)
   For Ipts = 0 To 23
-    Y = S9(Ipts): If Y < Ymin Then Y = Ymin: If Y > Ymax Then Y = Ymax
+    Y = prop_loss_cum_4graph(Ipts): If Y < Ymin Then Y = Ymin: If Y > Ymax Then Y = Ymax
     Xnode = Xleft + (Ipts + 1 - Xmin) * Xwidth / (Xmax - Xmin)
     Ynode = Ytop + (Ymax - Y) * Yheight / (Ymax - Ymin)
     myBuilder.AddNodes msoSegmentLine, msoEditingAuto, Xnode, Ynode
   Next Ipts
   For Ipts = 23 To 0 Step -1
-    Y = S9(Ipts) + S8(Ipts): If Y < Ymin Then Y = Ymin: If Y > Ymax Then Y = Ymax
+    Y = prop_loss_cum_4graph(Ipts) + prop_loss_indiv(Ipts): If Y < Ymin Then Y = Ymin: If Y > Ymax Then Y = Ymax
     Xnode = Xleft + (Ipts + 1 - Xmin) * Xwidth / (Xmax - Xmin)
     Ynode = Ytop + (Ymax - Y) * Yheight / (Ymax - Ymin)
     myBuilder.AddNodes msoSegmentLine, msoEditingAuto, Xnode, Ynode
   Next Ipts
   For Ipts = 0 To 23
-    S9(Ipts) = S9(Ipts) + S8(Ipts)
+    prop_loss_cum_4graph(Ipts) = prop_loss_cum_4graph(Ipts) + prop_loss_indiv(Ipts)
   Next Ipts
   
   Set myShape = myBuilder.ConvertToShape
@@ -1212,30 +1212,30 @@ Sub DrawLayers()
   Range("L6").Offset(0).Select
   ActiveSheet.Paste
 
-  For I = 0 To 23: S9(I) = S1(I): S3(I) = S1(I):  Next I
-  InverseDistance ' S3=S3+Pinv
+  For I = 0 To 23: prop_loss_cum_4graph(I) = target_spectrum(I): prop_loss_cum(I) = target_spectrum(I):  Next I
+  InverseDistance ' prop_loss_cum=prop_loss_cum+Pinv
   ShapeNo = 1
   DrawFilledPolygon
-  Atmosphere ' S3=S3+AtmAbs-AtmAbsRef
+  Atmosphere ' prop_loss_cum=prop_loss_cum+atmos_absorption-AtmAbsRef
   ShapeNo = 2
   DrawFilledPolygon
-  GroundEffect ' S3=S3+GeAbs-GeRef
+  GroundEffect ' prop_loss_cum=prop_loss_cum+GeAbs-ground_effect_reference
   ShapeNo = 3
   DrawFilledPolygon
-  Foliage  '  S3=S3+Fo
+  Foliage  '  prop_loss_cum=prop_loss_cum+foliage_attenuation
   ShapeNo = 4
   DrawFilledPolygon
-  Barrier   '  S3=S3+Ba
+  Barrier   '  prop_loss_cum=prop_loss_cum+barrier_attenuation
   ShapeNo = 5
   DrawFilledPolygon
-  ShapeNo = 1: For I = 0 To 23: S9(I) = S1(I): Next I:  TraceXY   ' thick solid cyan
-  ShapeNo = 2: For I = 0 To 23: S9(I) = S1(I) + S3(I): Next I: TraceXY ' thick solid green
-  ShapeNo = 9: For I = 0 To 23: S9(I) = S7(I): Next I: TraceXY ' thin solid brown
-  ShapeNo = 3: For I = 0 To 23: S9(I) = S7(I): Next I: TraceXY ' thick dash green
-  ShapeNo = 7: For I = 0 To 23: S9(I) = S6(I): Next I: TraceXY ' thick solid red
-  ShapeNo = 6: For I = 0 To 23: S9(I) = S5(I): Next I: TraceXY ' thin dash red
-  ShapeNo = 6: For I = 0 To 23: S9(I) = S2a(I): Next I: TraceXY ' thin dash red
-  ShapeNo = 9: For I = 0 To 23: S9(I) = S2(I): Next I: TraceXY  ' thick dash red
-  ShapeNo = 4: For I = 0 To 23: S9(I) = S2(I): Next I: TraceXY  ' thick dash red
+  ShapeNo = 1: For I = 0 To 23: prop_loss_cum_4graph(I) = target_spectrum(I): Next I:  TraceXY   ' thick solid cyan
+  ShapeNo = 2: For I = 0 To 23: prop_loss_cum_4graph(I) = target_spectrum(I) + prop_loss_cum(I): Next I: TraceXY ' thick solid green
+  ShapeNo = 9: For I = 0 To 23: prop_loss_cum_4graph(I) = listener_spectrum(I): Next I: TraceXY ' thin solid brown
+  ShapeNo = 3: For I = 0 To 23: prop_loss_cum_4graph(I) = listener_spectrum(I): Next I: TraceXY ' thick dash green
+  ShapeNo = 7: For I = 0 To 23: prop_loss_cum_4graph(I) = background_noise_spec(I): Next I: TraceXY ' thick solid red
+  ShapeNo = 6: For I = 0 To 23: prop_loss_cum_4graph(I) = hearing_threshold(I): Next I: TraceXY ' thin dash red
+  ShapeNo = 6: For I = 0 To 23: prop_loss_cum_4graph(I) = mod_background_noise(I): Next I: TraceXY ' thin dash red
+  ShapeNo = 9: For I = 0 To 23: prop_loss_cum_4graph(I) = max_modBackground_thresh(I): Next I: TraceXY  ' thick dash red
+  ShapeNo = 4: For I = 0 To 23: prop_loss_cum_4graph(I) = max_modBackground_thresh(I): Next I: TraceXY  ' thick dash red
 End Sub
 
