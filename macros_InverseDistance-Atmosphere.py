@@ -2,7 +2,8 @@ import math
 
 
 def InverseDistance():
-    Pinv = 2 * TenDivLog10 * math.log(D3 / D4) #Inverse distance loss from D3 to D4
+    ten_div_natural_log10 = 4.342944824679639
+    Pinv = 2 * ten_div_natural_log10 * math.log(D3 / D4) #Inverse distance loss from D3 to D4
 
     for i in range(24):
         S8[i] = Pinv
