@@ -1,50 +1,59 @@
 import math
 
+#global variables 
+atm_abs = []
+atm_abs_ref = []
+s8 = []
+s3 = []
 
-def InverseDistance():
-    Pinv = 2 * TenDivLog10 * math.log(D3 / D4) #Inverse distance loss from D3 to D4
+def inverse_distance():
+    TEN_DIV_NATURAL_LOG10 = 4.342944824679639
+    #D4 should be mic distance source m. changes depending on what macro is used. Can also be detect distance
+    p_inv = 2 * TEN_DIV_NATURAL_LOG10 * math.log(d3 / d4) #Inverse distance loss from D3 to D4. D3 is the mic distance from the target from excel.
 
     for i in range(24):
-        S8[i] = Pinv
-        if (S8[i] == 0):
+        s8[i] = p_inv
+        if (s8[i] == 0):
             s8[i] = -0.001
-        S3[i] = S8[i]
+        s3[i] = s8[i]
 
-def AnsiHumidity():
-    T = Too + T1
-    Pstar = 1
-    Acr1 = 0.000000016 * (1.377 * T / (T + 110.4)) / Pstar
-    Thto = 2239.1 / T
-    Exthto = math.exp(-Thto)
-    Rto = Thto / (1 - Exthto)
-    Mumaxo = 0.20948 * 4 * math.pi * Rto * Rto * Exthto / 35
-    Thtn = 3352 / T #exclamation point after 3352 should just be to delcare it as a single but not sure
-    Exthtn = math.exp(-Thtn)
-    Rtn = Thtn / (1 - Exthtn)
-    Mumaxn = 0.78084 * 4 * math.pi * Rtn * Rtn * Exthtn / 35
-    Cs = Co * math.sqrt(T / Too)
-    H = H1 * math.exp(math.log10 * (20.5318 - 2939 / T - 2.13759744 * math.log(T))) / Pstar
-    Fox = (24 + 44100 * H * (0.05 + H) / (0.391 + H)) * math.sqrt(293 / T)    # Is 293 used as 273 + 20degC?
-    Fni = (9 + 350 * H) * (293 / T)
-    D1 = R * 0.01
-
-    for i in range(24):
-        Freq2 = S4(I)
-        Freq2 = Freq2 * Freq2
-        Acr = Acr1 * Freq2
-        X2o = Freq2 / (Fox * Fox)
-        Avibo = 868.5 * Mumaxo * Fox / Cs * X2o / (1 + X2o)
-        X2n = Freq2 / (Fni * Fni)
-        Avibn = 868.5 * Mumaxn * Fni / Cs * X2n / (1 + X2n)
-        AtmAbs[I] = -D1 * (Acr + Avibo + Avibn)
-
-
-def Atmosphere():
-    AnsiHumidity()
+def ansi_humidity():
+    TOO = 273.15
+    CO = 331.32
+    t = TOO + t1 #T1 is Temp deg C from excel.
+    PSTAR = 1
+    acr1 = 0.000000016 * (1.377 * t / (t + 110.4)) / PSTAR
+    thto = 2239.1 / t
+    exthto = math.exp(-thto)
+    rto = thto / (1 - exthto)
+    mumaxo = 0.20948 * 4 * math.pi * rto * rto * exthto / 35
+    thtn = 3352 / t
+    exthtn = math.exp(-thtn)
+    rtn = thtn / (1 - exthtn)
+    mumaxn = 0.78084 * 4 * math.pi * rtn * rtn * exthtn / 35
+    cs = CO * math.sqrt(t / TOO) 
+    h = h1 * math.exp(math.log10 * (20.5318 - 2939 / t - 2.13759744 * math.log(t))) / PSTAR #H1 is RH% from excel
+    fox = (24 + 44100 * h * (0.05 + h) / (0.391 + h)) * math.sqrt(293 / t)    # Is 293 used as 273 + 20degC?
+    fni = (9 + 350 * h) * (293 / t)
+    d1 = r * 0.01 #R can be a different value depending on what helper function is called
 
     for i in range(24):
-        S8[i] = AtmAbs[i] - AtmAbsRef[i]
+        freq2 = s4[i] #S4 is from the Freq. Hz collumn
+        freq2 = freq2 * freq2
+        acr = acr1 * freq2
+        x2o = freq2 / (fox * fox)
+        avibo = 868.5 * mumaxo * fox / cs * x2o / (1 + x2o)
+        x2n = freq2 / (fni * fni)
+        avibn = 868.5 * mumaxn * fni / cs * x2n / (1 + x2n)
+        atm_abs[i] = -d1 * (acr + avibo + avibn) #AtmAbs, atmosphere absorption, a global variable this is where it is initialized
 
-        if (S8[i] == 0):
-            S8[i] = -0.001
-        S3[i] = S3[i] + S8[i]
+
+def atmosphere():
+    ansi_humidity()
+
+    for i in range(24):
+        s8[i] = atm_abs[i] - atm_abs_ref[i] #only place I see AtmAbsRef initialized is in Reference Calc(), but is just iniliatized to AtmAbs[i]
+
+        if (s8[i] == 0):
+            s8[i] = -0.001
+        s3[i] = s3[i] + s8[i]
