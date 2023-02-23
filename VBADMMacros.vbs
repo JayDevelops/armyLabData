@@ -592,7 +592,7 @@ Sub InitMacros()
 
 End Sub
 
-Sub Macro1()
+Sub Detection_Distance_Macro()
   InitMacros
 
   BinarySearch
@@ -657,7 +657,7 @@ Sub Macro1()
   End With
   Range("A38").Activate
 End Sub
-Sub Macro2()
+Sub NonDetect_Spectrum_Macro()
   Dim Rg2 As Range
   InitMacros
   Set Rg2 = Sheets("Model").Range("C4")
@@ -734,7 +734,7 @@ Sub Macro2()
   End With
   Range("A38").Activate
 End Sub
-Sub Macro3()
+Sub Level_Losses_Distance_Macro()
   Dim Rg2 As Range
   InitMacros
   Set Rg2 = Sheets("Model").Range("C4")
@@ -799,7 +799,7 @@ Sub Macro3()
   DrawLayers
   
 End Sub
-Sub Macro4()
+Sub dBA_Distance_Macro()
   Dim Rg2 As Range
   InitMacros
   Set Rg2 = Sheets("Model").Range("G4")
@@ -878,7 +878,7 @@ End Sub
 
 
 
-Sub Macro5()
+Sub Speech_Intelligibility_Macro()
   Dim Rg2 As Range
   InitMacros
   Set Rg2 = Sheets("Model").Range("C4")
