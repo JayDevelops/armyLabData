@@ -1,32 +1,27 @@
-#Variable Declarations
-
-#A1 ->  Average leaf width in cm
-#Cs ->
-#D4 ->  Detection distance
-#Fo ->  Foliage tten
-#F1 ->  Leaf area per unit vol. dense hardwood brush in m^-1
-#Ka ->
-#N1 ->  Foliated-zone numbers
-#W1 ->  Distance in meters from source to near edge of foliage        
-#W2 ->  Depth (extent) of foliage in meters
-#X2 ->
-#S3 ->  Propagation Loss cumulative
-#S4 ->  Frequency
-#S8 ->  Propagation Loss individual
-
-
 import math
+import pandas as pd
 
+adm_model_df = pd.read_excel('admDataSet.xls', sheet_name='Model')
+adm_data_df = pd.read_excel('admDataSet.xls', sheet_name='Data')
+model_sheet = 'admDataSet.xls'
+
+N1 = pd.read_excel(model_sheet,sheet_name='Model',usecols='K',nrows=5)
+D4 = pd.read_excel(model_sheet, sheet_name='Model', usecols='C', nrows=5)
+W1 = pd.read_excel(model_sheet, sheet_name='Model', usecols='L', nrows=5)
+W2 = pd.read_excel(model_sheet, sheet_name='Model', usecols='M', nrows=5)
+Fl = pd.read_excel(model_sheet, sheet_name='Model', usecols='N', nrows=5)
+Al = pd.read_excel(model_sheet, sheet_name='Model', usecols='O', nrows=5)
+N1 = N1.iloc[-2,0]
+D4 = D4.iloc[-3,0]
+W1 = W1.iloc[-2,0]
+W2 = W2.iloc[-2,0]
+Fl = Fl.iloc[-2,0]
+Al = Al.iloc[-2,0]
 
 S4 = [50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000,
       6300, 8000, 10000]
-N1 = 1
-D4 = 30
-W1 = 1
-W2 = 100
-Fl = 0.5
+
 Cs = 340.29
-Al = 3.2
 S8 = [0] * 24
 S3 = [0] * 24
 
@@ -66,4 +61,3 @@ def Foliage(N1, D4, W1, W2, Fl, Cs, Al, S4, S8, S3):
 
 Fo_values = Foliage(N1, D4, W1, W2, Fl, Cs, Al, S4, S8, S3)
 print(Fo_values)
-
