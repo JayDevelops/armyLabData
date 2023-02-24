@@ -1,22 +1,18 @@
 import math
 import pandas as pd
 
-adm_model_df = pd.read_excel('admDataSet.xls', sheet_name='Model')
-adm_data_df = pd.read_excel('admDataSet.xls', sheet_name='Data')
-model_sheet = 'admDataSet.xls'
-
-N1 = pd.read_excel(model_sheet,sheet_name='Model',usecols='K',nrows=5)
-D4 = pd.read_excel(model_sheet, sheet_name='Model', usecols='C', nrows=5)
-W1 = pd.read_excel(model_sheet, sheet_name='Model', usecols='L', nrows=5)
-W2 = pd.read_excel(model_sheet, sheet_name='Model', usecols='M', nrows=5)
-Fl = pd.read_excel(model_sheet, sheet_name='Model', usecols='N', nrows=5)
-Al = pd.read_excel(model_sheet, sheet_name='Model', usecols='O', nrows=5)
-N1 = N1.iloc[-2,0]
-D4 = D4.iloc[-3,0]
-W1 = W1.iloc[-2,0]
-W2 = W2.iloc[-2,0]
-Fl = Fl.iloc[-2,0]
-Al = Al.iloc[-2,0]
+N1 = pd.read_excel('admDataSet.xls', sheet_name='Model', usecols='K', nrows=5)
+D4 = pd.read_excel('admDataSet.xls', sheet_name='Model', usecols='C', nrows=5)
+W1 = pd.read_excel('admDataSet.xls', sheet_name='Model', usecols='L', nrows=5)
+W2 = pd.read_excel('admDataSet.xls', sheet_name='Model', usecols='M', nrows=5)
+Fl = pd.read_excel('admDataSet.xls', sheet_name='Model', usecols='N', nrows=5)
+Al = pd.read_excel('admDataSet.xls', sheet_name='Model', usecols='O', nrows=5)
+N1 = N1.iloc[-2, 0]
+D4 = D4.iloc[-3, 0]
+W1 = W1.iloc[-2, 0]
+W2 = W2.iloc[-2, 0]
+Fl = Fl.iloc[-2, 0]
+Al = Al.iloc[-2, 0]
 
 S4 = [50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000,
       6300, 8000, 10000]
