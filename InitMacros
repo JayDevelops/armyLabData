@@ -1,10 +1,10 @@
 import math
 import pandas as pd
 
-modelSheet_df = pd.read_excel("/home/bmillie/Documents/Capstone/adm/admDataSet.xls", sheet_name="Model", usecols='A:V')
-dataSheet_df = pd.read_excel("/home/bmillie/Documents/Capstone/adm/admDataSet.xls", sheet_name="Data")
+modelSheet_df = pd.read_excel('admDataSet.xls', sheet_name="Model", usecols='A:V')
+dataSheet_df = pd.read_excel('admDataSet.xls', sheet_name="Data")
 
-excel_file = "/home/bmillie/Documents/Capstone/adm/admDataSet.xls"
+excel_file = 'admDataSet.xls'
 
 def InitMacros():
     # Rg1 = Range()
