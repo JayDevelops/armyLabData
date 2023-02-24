@@ -13,37 +13,36 @@
 #S3 ->  Propagation Loss cumulative
 #S4 ->  Frequency
 #S8 ->  Propagation Loss individual
-#=================================================================================
-
-#Where they are referenced in model data sheet
-#A1 ->  Column:O    Row:5
-#Cs ->  Column:     Row:
-#D4 ->  Column:     Row:
-#Fo ->  Column:     Row:
-#F1 ->  Column:N    Row:5
-#Ka ->  Column:     Row:
-#N1 ->  Column:K    Row:5
-#W1 ->  Column:L    Row:5
-#W2 ->  Column:M    Row:5
-#X2 ->  Column:     Row:
-#S3 ->  Column:     Row:
-#S4 ->  Column:     Row:
-#S8 ->  Column:     Row:
 
 
 import math
 
-def Foliage():
+
+S4 = [50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000,
+      6300, 8000, 10000]
+N1 = 1
+D4 = 30
+W1 = 1
+W2 = 100
+Fl = 0.5
+Cs = 340.29
+Al = 3.2
+S8 = [0] * 24
+S3 = [0] * 24
+
+
+def Foliage(N1, D4, W1, W2, Fl, Cs, Al, S4, S8, S3):
     Fo = [-0.001] * 24
-    
+    Fo_list = []
+
     if N1 > 0:
-        #If detection distance is greater than the distance from source to edge of foliage
+        # If detection distance is greater than the distance from source to edge of foliage
         if D4 > W1:
-            #Sets the distance difference to X2
+            # Sets the distance difference to X2
             X2 = D4 - W1
-            #If the new detection distance is greater then depth (extent) of foliage in meters
+            # If the new detection distance is greater than depth (extent) of foliage in meters
             if X2 > W2:
-                #Set distance the depth (extent) of foliage in meters
+                # Set distance the depth (extent) of foliage in meters
                 X2 = W2
             X2 = math.sqrt(X2)
             Cons = 2.647 / math.log(10)
@@ -56,6 +55,15 @@ def Foliage():
                     Fo[I] = -X2 * math.sqrt(Fl) * (Cons * math.log(Ka) + 1.05)
                 else:
                     Fo[I] = -X2 * math.sqrt(Fl) * 2.9
-    for I in range(0, 24):
-        S8[I] = Fo[I]
-        S3[I] = S3[I] + S8[I]
+                Fo_list.append(Fo)
+    else:
+        for I in range(0, 24):
+            S8[I] = Fo[I]
+            S3[I] = S3[I] + S8[I]
+            Fo_list.append(S3)
+    return Fo_list
+
+
+Fo_values = Foliage(N1, D4, W1, W2, Fl, Cs, Al, S4, S8, S3)
+print(Fo_values)
+
