@@ -1,0 +1,37 @@
+Public Pi, Log10, Log10Div10, TenDivLog10
+Public I As Integer, J As Integer, K As Integer
+Public Done As Integer, LastCol As Integer, ShapeNo As Integer
+Public T1, H1, R, Hs, Hr, Too, Em2, Em2Det, Em2Ref, Sigma, SigmaRef, SigmaDet, Co, Cs
+Public H2ref, H3ref, E1, D1, P1, P2, H2, H3, Hba, Iwthr1, M2, D5, D6, A1, B1, WindSpeed
+Public X1, X2, X3, b7, b8, Ka, W1, W2, Al, Fl, Trg, Bkg, Hth, Ai, PCor, Pc1, Pc2, Pc3, Pc4
+Public Ea, dBa
+
+Public D3 As Single     ' m Meas Dist
+Public D4 As Single     ' Detection Dist
+Public b9 As Integer     ' Barrier number
+Public N1 As Integer     ' Foliated-zone numbers
+Public S1(26) As Single  ' Target spectrum
+Public S2(26) As Single  ' MAX(S2a,S5)
+Public S2a(26) As Single ' Modified Background Noise
+Public S2b(26) As Single ' Modified Background Noise
+Public S3(26) As Single  ' Propagation Loss cumulative
+Public S4(26) As Integer ' Freq
+Public S5(26) As Single  ' Hearing Threshold
+Public S6(26) As Single  ' Background noise spectrum
+Public S7(26) As Single  ' Listener spectrum
+Public S8(26) As Single  ' Propagation Loss individual
+Public S9(26) As Single  ' Propagation Levels cumulative
+Public S10(26) As Single  ' A weight levels
+Public SNR(26) As Single  ' SNR in AI calculation
+Public AiWt(24) As Single ' AI weights
+Public M1(24) As Single        'Detection band
+Public AtmAbs(24) As Single    'Atmosp Absorption
+Public Ge(26) As Single        'Ground Effect
+Public AtmAbsRef(26) As Single 'Reference Atmosp Absorption during measurement
+Public GeRef(26) As Single     'Reference Ground Effect during measurement
+Public Ba(26) As Single        'Barrier atten
+Public Fo(26) As Single        'Foliage tten
+Public Wind(26) As Single      'Wind refraction loss (from early version)
+Public B3(23) As Single
+Public W3(23, 4) As Single     ' 1/3 OB Weightings for masking bands
+Public Threshold As Variant
