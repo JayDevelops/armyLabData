@@ -6,16 +6,16 @@ atm_abs_ref = []
 s8 = []
 s3 = []
 
-def inverse_distance():
-    TEN_DIV_NATURAL_LOG10 = 4.342944824679639
-    #D4 should be mic distance source m. changes depending on what macro is used. Can also be detect distance
-    p_inv = 2 * TEN_DIV_NATURAL_LOG10 * math.log(d3 / d4) #Inverse distance loss from D3 to D4. D3 is the mic distance from the target from excel.
+# def inverse_distance():
+#     TEN_DIV_NATURAL_LOG10 = 4.342944824679639
+#     #D4 should be mic distance source m. changes depending on what macro is used. Can also be detect distance
+#     p_inv = 2 * TEN_DIV_NATURAL_LOG10 * math.log(d3 / d4) #Inverse distance loss from D3 to D4. D3 is the mic distance from the target from excel.
 
-    for i in range(24):
-        s8[i] = p_inv
-        if (s8[i] == 0):
-            s8[i] = -0.001
-        s3[i] = s8[i]
+#     for i in range(24):
+#         s8[i] = p_inv
+#         if (s8[i] == 0):
+#             s8[i] = -0.001
+#         s3[i] = s8[i]
 
 def ansi_humidity():
     TOO = 273.15
