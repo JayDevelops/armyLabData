@@ -10,10 +10,15 @@ def Detection():
     Bkg_name = 'Urban' #Ambient setting background noise
     Hth_name = 'ISO Std' #Hearing Threshold based on ISO Standard
 
-    data.get_data(Trg_name, Bkg_name, Hth_name, data_df)
+    #Find and set all necessary dataframes for further processing
+    freq_df, target_df, bkg_noise_df, \
+        hear_thresh_df, awt_weights, ai_weights_df, \
+        third_obands_df = data.get_data(Trg_name, Bkg_name, Hth_name, data_df)
 
-#Main Function Declaration and Invocation
+#Main Function Declaration and Call
 def main():
+    # Possibly implement a switch case to consider user input 
+    # of which Macro to call
     Detection()
 
 if __name__=='__main__':
