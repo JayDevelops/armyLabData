@@ -4,12 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="be3e3a53-c560-426d-9d7b-003b0a5f54b9" name="Changes" comment="updated .gitignore to remove ArmyLabData.iml">
-      <change afterPath="$PROJECT_DIR$/DetectionScripts/ADM - from Joel - Sept-2013.xls" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DetectionScripts/ADM.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/DetectionScripts/MacrosInVBS.vbs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="be3e3a53-c560-426d-9d7b-003b0a5f54b9" name="Changes" comment="finished inverse_distance macro">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/DetectionScripts/ADM.py" beforeDir="false" afterPath="$PROJECT_DIR$/DetectionScripts/ADM.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -152,7 +149,8 @@
       <updated>1677097260588</updated>
       <workItem from="1677097262125" duration="100000" />
       <workItem from="1677097373111" duration="7962000" />
-      <workItem from="1677128800214" duration="1117000" />
+      <workItem from="1677128800214" duration="1753000" />
+      <workItem from="1678304765958" duration="2183000" />
     </task>
     <task id="LOCAL-00001" summary="finished inverse_distance macro and added .gitignore">
       <created>1677127751683</created>
@@ -175,7 +173,14 @@
       <option name="project" value="LOCAL" />
       <updated>1677127875808</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="finished inverse_distance macro">
+      <created>1677129943287</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1677129943287</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -210,12 +215,12 @@
     <MESSAGE value="head to starting data" />
     <MESSAGE value="changed df" />
     <MESSAGE value="added python book and .csv" />
-    <MESSAGE value="finished inverse_distance macro" />
     <MESSAGE value="finished inverse_distance macro and added .gitignore" />
     <MESSAGE value="removed data.py to-do headers" />
     <MESSAGE value="added ArmyLabData.iml" />
     <MESSAGE value="updated .gitignore to remove ArmyLabData.iml" />
-    <option name="LAST_COMMIT_MESSAGE" value="updated .gitignore to remove ArmyLabData.iml" />
+    <MESSAGE value="finished inverse_distance macro" />
+    <option name="LAST_COMMIT_MESSAGE" value="finished inverse_distance macro" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/ArmyLabData$python.coverage" NAME="python Coverage Results" MODIFIED="1677097708881" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/.." />

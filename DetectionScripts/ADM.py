@@ -40,6 +40,12 @@ def get_data(target, background_noise, hearing_th, df):
     # ai_weights_df = ai_weights_df.drop(range(24,27))
 
 
+def Ingard():
+    return 2
+
+def AnsiHumidity():
+    return 7
+
 def inverse_distance(measure_dist: float, detection_dist: float) -> list:
     # 10 divided by log 10 static, and log of measure distance divided by detection distance log in base 10
     ten_divided_by_log_10, log_m_dist_by_d_dist = (10 / math.log(10, 10)), math.log(measure_dist / detection_dist, 10)
@@ -55,19 +61,21 @@ def inverse_distance(measure_dist: float, detection_dist: float) -> list:
 
     return inverse_distances
 
+"""
+ground_effect_reference(26) is 'Reference Ground Effect during measurement' from .vbs file
+"""
+def reference_calc(sigma: float, source_height_condition: float,
+                   measure_dist: float, mic_height_coord: float,
+                   em2_ref: float, ground_effect_ref: float) -> list:
+    arr = []
+    for x in range(0, 23):
+        new_num = Ingard() + AnsiHumidity()
+        arr.append(Ingard() + AnsiHumidity())
+
+    return arr
+
+
 
 def calculate_measure_dist(detection_dist: float):
     return detection_dist * 25.0
 
-
-def test_inv_dist():
-    measure_dist = 30.0
-    detection_dist = calculate_measure_dist(30.0)
-
-    inv_distances = inverse_distance(measure_dist, detection_dist)
-
-    for x in inv_distances:
-        print(x)
-
-
-test_inv_dist()
