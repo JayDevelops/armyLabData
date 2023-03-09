@@ -79,3 +79,12 @@ def reference_calc(sigma: float, source_height_condition: float,
 def calculate_measure_dist(detection_dist: float):
     return detection_dist * 25.0
 
+def targetdBA(E: double):
+    ten_divided_by_log_10, log_10_div_10 = (10 / math.log(10, 10)), (math.log(10,10) / 10)
+    E = 0
+    for x in range(0, 23):
+        E = E + math.exp(log_10_div_10 * s1[x], s10[x]) 
+    
+    targetdBA = ten_divided_by_log_10 * math.log(E, 10)
+
+    return targetdBA
