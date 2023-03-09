@@ -2,6 +2,8 @@ import math
 
 import pandas as pd
 
+s1 = []
+s10 = []
 
 # Reads "Data" sheet from ADM by Joel for reference values and returns it
 def read_data():
