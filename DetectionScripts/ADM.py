@@ -274,7 +274,6 @@ def initMacros():
 
         # Load D3 Value from Data sheet to Model sheet
         D3 = dataSheet_df.iloc[24,Trg.iloc[-1].astype(int)].values
-        
         modelSheet_df.iloc[2,2] = D3
 
     # else:
@@ -383,8 +382,8 @@ def initMacros():
     p2 = p2.iloc[-2,0]
 
     # Calculate d' statistic
-    # D1 = Dprime
-    # Range(u3).value = D1
+    D1 = pd.read_excel(excel_file, sheet_name='Model', usecols='U', nrows=3)
+    D1 = D1.iloc[-2, 0]
 
     windFlag = 0
     windDir = "Upwind"
