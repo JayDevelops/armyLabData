@@ -41,3 +41,11 @@ lis_cons = {
     'is_binaural': False,
 }
 
+given_cons = {
+    'lis_dist_given': 30,
+    'dba_given': 55,
+    'trg_name': 'Drone',
+    'bkg_name': 'Urban',
+    'hth_name': 'ISO std',
+}
+
