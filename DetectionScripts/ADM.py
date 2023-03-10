@@ -1,22 +1,34 @@
-<<<<<<< Updated upstream
-import math
-
-import pandas as pd
-
-=======
 import pandas as pd  # Install pandas in python or use Anaconda environment
 import data  # python module including helper functions (In our case, translated Macros from ADM by Jeol)
 import math
->>>>>>> Stashed changes
 
-# Reads "Data" sheet from ADM by Joel for reference values and returns it
-def read_data():
-    adm_data_df = pd.read_excel('ADM - from Joel - Sept-2013.xls', sheet_name='Data')
-    # adm_data_df = pd.read_excel('adm.xls', sheet_name='Data')
-    return adm_data_df
+def Detection():
+    # data_df = data.read_data()
+    # print(data_df.iloc[:,29:34])
 
+    data_df = pd.read_excel('ADM - from Joel - Sept-2013.xls', sheet_name='Data')
 
-# Extract relevant reference values to be used in calcuating detectability
+    # Instantiating specific columns to be pulled from the data sheet in ADM by Joel
+    Trg_name = 'Drone'  # Drone db column
+    Bkg_name = 'Urban'  # Ambient setting background noise
+    Hth_name = 'ISO Std'  # Hearing Threshold based on ISO Standard
+
+    freq_df = data_df['Freq Hz']
+    target_df = data_df[Trg_name]
+    bkg_df = data_df[Bkg_name]
+    ht_df = data_df[Hth_name]
+    awt_weights_df = data_df['Awt weights']
+    ai_weights_df = data_df['A.I. weights']
+    third_octave_bands_df = data_df.iloc[:, 29:34].copy()
+
+    # #Find and set all necessary dataframes for further processing
+    # freq_df, target_df, bkg_noise_df, \
+    #     hear_thresh_df, awt_weights, ai_weights_df, \
+    #     third_obands_df = data.get_data(Trg_name, Bkg_name, Hth_name, data_df)
+
+    # print(third_obands_df)
+
+# Extract relevant reference values to be used in calcuating detectability. InitMacros()
 def get_data(target, background_noise, hearing_th, df):
     mic_distance = df.at[24, target]
 
@@ -45,14 +57,12 @@ def get_data(target, background_noise, hearing_th, df):
     # awt_weights_df = awt_weights_df.drop(range(24,27))
     # ai_weights_df = ai_weights_df.drop(range(24,27))
 
+def atmosphere(s3, s8, atm_abs, atm_abs_ref):
+    ansi_humidity()
 
-def inverse_distance(measure_dist: float, detection_dist: float) -> list:
-    # 10 divided by log 10 static, and log of measure distance divided by detection distance log in base 10
-    ten_divided_by_log_10, log_m_dist_by_d_dist = (10 / math.log(10, 10)), math.log(measure_dist / detection_dist, 10)
+    for i in range(24):
+        s8[i] = atm_abs[i] - atm_abs_ref[i] #only place I see AtmAbsRef initialized is in Reference Calc(), but is just iniliatized to AtmAbs[i]
 
-<<<<<<< Updated upstream
-    inverse_distances = []
-=======
         if (s8[i] == 0):
             s8[i] = -0.001
         s3[i] = s3[i] + s8[i]
@@ -92,7 +102,7 @@ def ansi_humidity():
 
 
 def inverse_distance(s8, s3, d3, d4):
-    TEN_DIV_NATURAL_LOG10= (10 / math.log(10, 10))
+    TEN_DIV_NATURAL_LOG10 = (10 / math.log(10, 10))
     #D4 should be mic distance source m. changes depending on what macro is used. Can also be detect distance
     p_inv = 2 * TEN_DIV_NATURAL_LOG10 * math.log(d3 / d4) #Inverse distance loss from D3 to D4. D3 is the mic distance from the target from excel.
 
@@ -106,7 +116,6 @@ def normal_deviate(p):
     t = math.sqrt(-2 * math.log(p))
     return t - (2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481))
 
-
 """
 ground_effect_reference(26) is 'Reference Ground Effect during measurement' from .vbs file
 """
@@ -114,30 +123,21 @@ def reference_calc(ground_effect_ref):
     for I in range(0,23):
         ground_effect_ref(I) = ground_effect(I)
         AtmAbsRef(I) = atmos_absorption(I)
->>>>>>> Stashed changes
 
-    for x in range(0, 23):
-        inv_dist = 2 * ten_divided_by_log_10 * log_m_dist_by_d_dist
-        if inv_dist == 0:
-            inverse_distances.append(inv_dist)
-        else:
-            inverse_distances.append(-0.001)
 
-    return inverse_distances
 
 
 def calculate_measure_dist(detection_dist: float):
     return detection_dist * 25.0
 
 
-def test_inv_dist():
-    measure_dist = 30.0
-    detection_dist = calculate_measure_dist(30.0)
 
-    inv_distances = inverse_distance(measure_dist, detection_dist)
-
-    for x in inv_distances:
-        print(x)
+# Main Function Declaration and Call
+def main():
+    # Possibly implement a switch case to consider user input
+    # of which Macro to call
+    Detection()
 
 
-test_inv_dist()
+if __name__ == '__main__':
+    main()
