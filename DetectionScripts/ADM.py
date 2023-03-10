@@ -2,7 +2,12 @@ import pandas as pd  # Install pandas in python or use Anaconda environment
 import data  # python module including helper functions (In our case, translated Macros from ADM by Jeol)
 import math
 
-import pandas as pd
+# global variables
+prop_loss_cum = 0
+
+def Detection():
+    # data_df = data.read_data()
+    # print(data_df.iloc[:,29:34])
 
 
     # #Find and set all necessary dataframes for further processing
@@ -101,6 +106,27 @@ def normal_deviate(p):
     t = math.sqrt(-2 * math.log(p))
     return t - (2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481))
 
+def ground_effect():
+    TrgHgt = source_height_det
+    DetHgt = listener_height_det
+    R = detection_dist
+    Sigma = SigmaDet
+    Em2 = Em2Det
+    windspeed = wind_speed
+    Iwthr1 = 0
+    if (Iwthr1 == 0):
+        # calls Ingard()
+        if (windspeed >= 0):
+            for i in range(24):
+                prop_loss_indiv[i] = ground_effect_ingard[i] - gournd_effect_initial[i]
+                if (prop_loss_indiv[i] == 0):
+                    prop_loss_indiv[i] = -0.01
+                prop_loss_cum[i] = prop_loss_cum[i] + prop_loss_indiv[i]
+        else:
+            for i in range(24):
+                if (prop_loss_indiv[i] == 0):
+                    prop_loss_indiv[i] = -0.001
+                prop_loss_indiv[i] = ground_effect_ingard[i] - ground_effect_initial[i]
 
 """The variables that are used in this function are described as:
 
@@ -172,8 +198,38 @@ def binary_search(m_meas_distance, D5, D6, M2, precision_fraction):
                 D5 = detection_dist
             else:
                 D6 = detection_dist
+                
+                
+#NEEDS WORK <------------------------------------------------
+def binary_searchA(m_meas_distance, D5, D6, M2, precision_fraction):
+    Z9 = -1
+    detection_dist = m_meas_distance * 25
 
+    while M2 < 0:
+        Z9 = Z9 + 1
+        D5 = detection_dist
+        detection_dist = 2 * detection_dist
+        D6 = detection_dist
 
+    if Z9 == 0:
+        while abs(D6 - D5) < precision_fraction * detection_dist:
+            detection_dist = (D5 + D6) / 2
+
+            if M2 > 0:
+                D5 = detection_dist
+            else:
+                D6 = detection_dist
+
+                
+#NEEDS WORK <------------------------------------------------                
+def ingard():
+    print("Needs Work")
+
+#NEEDS WORK <------------------------------------------------     
+def dprime():
+    print("Needs Work")
+    
+    
 """
 ground_effect_reference(26) is 'Reference Ground Effect during measurement' from .vbs file
 """
