@@ -114,6 +114,7 @@ def inverse_distance(s8, s3, d3, d4):
 
 """The variables that are used in this function are described as:
 barrier_attenuation -> Global array variable (declared in line 35 of VBA Macros). Inititalized for first time inside Barrier()
+barrier_number -> Integer representing a binary decision (is there a barrier or not)
 detection_dist -> Global 'double' variable (declared in line 13 of VBA Macros). It is also used in GroundEffect() on line 186
 distance_from_source -> initialized from excel cell "I5" (line 579)
 barrier_height_det -> initialized from excel cell "J5" (line 580)
@@ -126,9 +127,14 @@ prop_loss_indiv -> Global 'double' array declared in line 25. Is used in many fu
 prop_loss_cum -> Global 'double' array declared in line 20. Is used to hold value after all changes to prop_loss_indiv throughout the program.  
 """
 
-def Barrier():
+def Barrier(barrier_number, detection_dist, distance_from_source, barrier_height_det, source_height_det, listener_height_det, celsius_degrees_det, freq, prop_loss_indiv, prop_loss_cum):
+    Pi = 4 * math.atan(1)
+    Log10Div10 = 0.230258509
+    TenDivLog10 = 1 / Log10Div10
+    barrier_attenuation = 0
+    
     for i in range(24):
-        barrier_attenuation(i) = -0.001
+        barrier_attenuation[i] = -0.001
     if barrier_number > 0:
         if detection_dist >= distance_from_source:
             Hba = barrier_height_det - (source_height_det + distance_from_source * (listener_height_det) / detection_dist)
@@ -143,23 +149,23 @@ def Barrier():
                     X3 = math.sqrt(2 * Pi * abs(X2))
                     X2 = -(X2)
                     if(X2 <= -0.1916):
-                        barrier_attenuation(i) = -0.01
+                        barrier_attenuation[i] = -0.01
                     else: 
-                        barrier_attenuation(i) = -(5 + 2 * TenDivLog10 * math.log(X3 / math.tan(X3))) - 0.01
+                        barrier_attenuation[i] = -(5 + 2 * TenDivLog10 * math.log(X3 / math.tan(X3))) - 0.01
                 else:
                     X2 = 2 * X1 * freq(i) / Cs
                     X3 = math.sqrt(2 * Pi * abs(X2))
                     X2 = math.exp(2 * X3)
                     if(X2 == 1):
-                        barrier_attenuation(i) = -5 -0.01
+                        barrier_attenuation[i] = -5 -0.01
                     else:
-                        barrier_attenuation(i) = -(5 + 2 * TenDivLog10 * math.log(X3 * (X2 + 1) / (X2 - 1))) - 0.01
-                        if(barrier_attenuation(i) < -20):
-                            barrier_attenuation(i) = -20
+                        barrier_attenuation[i] = -(5 + 2 * TenDivLog10 * math.log(X3 * (X2 + 1) / (X2 - 1))) - 0.01
+                        if(barrier_attenuation[i] < -20):
+                            barrier_attenuation[i] = -20
     
     for i in range(24):
-        prop_loss_indiv(i) = barrier_attenuation(i)
-        prop_loss_cum(i) = prop_loss_cum(i) + prop_loss_indiv(i)
+        prop_loss_indiv[i] = barrier_attenuation(i)
+        prop_loss_cum[i] = prop_loss_cum[i] + prop_loss_indiv[i]
 
 
 
