@@ -1,127 +1,195 @@
-import math
-import pandas as pd
-
+excel_file = "admDataSet.xls"
 modelSheet_df = pd.read_excel('admDataSet.xls', sheet_name="Model", usecols='A:V')
 dataSheet_df = pd.read_excel('admDataSet.xls', sheet_name="Data")
 
-excel_file = 'admDataSet.xls'
+def inMac():
+    Trg = pd.read_excel(excel_file,sheet_name="Model",usecols='B',nrows=5)
+    Bkg = pd.read_excel(excel_file,sheet_name="Model",usecols='C',nrows=5)
+    Hth = pd.read_excel(excel_file,sheet_name="Model",usecols='D',nrows=5)
 
-def InitMacros():
-    # Rg1 = Range()
-    # Delete all charts
-    # DeleteAllCharts()
-    S1 = []
-    S4 = []
-    S5 = []
-    S6 = []
-    W3 = [[], []]
-    B3 = []
+    # Extract the frequency values from the first column of the DataFrame
+    S4 = dataSheet_df.iloc[:-3,0].values.tolist()
+    # print('S4:', S4)
+    # Loading Frequency values from data to model sheet
+    for i in range(len(S4)):
+        # Get the value from the first column of the current row in "Data" sheet
+        freqValues = S4[i]
+        # print('freqValues:', freqValues)
+        # Assign the value to S4 and the corresponding cell in "Model" sheet
+        modelSheet_df.loc[7+i, 'A'] = freqValues
 
-    # Read target, background, and health indicators from Model sheet
-    # Trg = modelSheet_df.Range("B6").Value
-    Trg = pd.read_excel(excel_file, sheet_name="Model", usecols='B', nrows=5)
-    Bkg = pd.read_excel(excel_file, sheet_name="Model", usecols='C', nrows=5)
-    Hth = pd.read_excel(excel_file, sheet_name="Model", usecols='D', nrows=5)
+    if Trg.iloc[-1,0] != 0:
+        # Target Spectrum
+        S1 = dataSheet_df.iloc[:-3,1].values.tolist()
+        # print('S1:', S1)
+        for i in range(len(S1)):
+            targetValues = S1[i]
+            # print('targetValues:', targetValues)
+            modelSheet_df.iloc[i+7, 1] = targetValues
 
-    # Load S4 values from Data sheet to Model sheet
-    for i in range(24):
-        S4[i] = dataSheet_df.Range("A2").Offset(i, 0).Value
-        modelSheet_df.Range("A8").Offset(i, 0).Value = S4[i]
+        # Load D3 Value from Data sheet to Model sheet
+        D3 = dataSheet_df.iloc[24,Trg.iloc[-1].astype(int)].values
+        # print('D3:' ,D3)
+        modelSheet_df.iloc[2,2] = D3
 
-    if Trg != 0:
-        # Load S1 values from Data sheet to Model sheet
-        for i in range(24):
-            S1[i] = dataSheet_df.Range("A2").Offset(i, Trg.iloc[-1.0]).Value
-            modelSheet_df.Range("A8").Offset(i, 1).Value = S1[i]
+    # else:
+    #     # Check if a distance value exists in Cell C3 for Microphone from Source
+    #     Rg1 = modelSheet_df.iloc[2, 2]
+    #
+    #     if isinstance(Rg1, (int, float)) and len(str(Rg1)) > 0:
+    #         D3 = Rg1
+    #
+    #     else:
+    #         # MsgBox("Enter a Distance in meters in Cell C3 for Microphone from Source")
+    #         return
 
-        # Load D3 value from Data sheet to Model sheet
-        D3 = dataSheet_df.Range("A2").Offset(24, Trg).Value
-        modelSheet_df.Range("C3").Value = D3
-    else:
-        # Check if a distance value exists in Cell C3 for Microphone from Source
-        Rg1 = modelSheet_df.Range("C3")
-        if isinstance(Rg1.value, (int, float)) and len(str(Rg1.value)) > 0:
-            D3 = Rg1.value
-        else:
-            # MsgBox("Enter a Distance in meters in Cell C3 for Microphone from Source")
-            return
+    if Bkg.iloc[-1,0] != 0:
+        S6 = dataSheet_df.iloc[:-3,Bkg.iloc[-1,0]].values.tolist()
+        for i in range(len(S6)):
+            bkgNoiseValues = S6[i]
+            # print('bkgNoiseValues:', bkgNoiseValues)
+            modelSheet_df.iloc[i+7, 2] = bkgNoiseValues
 
-    if Bkg != 0:
-        # Load S6 values from Data sheet to Model sheet
-        for i in range(24):
-            S6[i] = dataSheet_df.Range("A2").Offset(i, Bkg).Value
-            modelSheet_df.Range("A8").Offset(i, 2).Value = S6[i]
+    if Hth.iloc[-1,0] != 0:
+        s5 = dataSheet_df.iloc[:-3,Hth.iloc[-1,0]].values.tolist()
+        for i in range(len(s5)):
+            hearingValues = s5[i]
+            # print('Hearing values:', hearingValues)
+            modelSheet_df.iloc[i+7, 3] = s5[i]
 
-    if Hth != 0:
-        # Load S5 values from Data sheet to Model sheet
-        for i in range(24):
-            S5[i] = dataSheet_df.Range("A2").Offset(i, Hth).Value
-            modelSheet_df.Range("A8").Offset(i, 3).Value = S5[i]
+    # -----------------------------------------------------------------------------------------------
+    # Loading Ai weights
+    s5 = dataSheet_df.iloc[:-3,35].values.tolist()
+    AiWt = dataSheet_df.iloc[:-3,37].values.tolist()
+    # print('S5:',S5)
+    # print('AiWt:',AiWt)
 
-    # Load S10 and AiWt values from Data sheet
-    for i in range(0, 24):
-        S10 = [dataSheet_df.Range("A2").Offset(i, 35).Value for i in range(24)]
-    for i in range(0, 24):
-        AiWt = [dataSheet_df.Range("A2").Offset(i, 37).Value for i in range(24)]
-
-    ColOffset = 29
-    for i in range(0, 24):
-        # Load W3 values from Data sheet
-        for j in range(5):
-            W3[i][j] = dataSheet_df.Range("A2").Offset(i, j + ColOffset).Value
-        # Load B3 values from Data sheet
-        j = 5
-        B3[i] = dataSheet_df.Range("A2").Offset(i, j + ColOffset).Value
-
-    # Set some constants
-    Pi = 4 * math.atan(1)
     Log10Div10 = 0.230258509
     TenDivLog10 = 1 / Log10Div10
     Log10 = 2.302585093
     Co = 331.32
     Too = 273.15
     A1 = 0.001
-    H2ref = modelSheet_df.Range("A3").Value  # m Source Height meas
-    H3ref = modelSheet_df.Range("B3").Value  # m Mic Height meas
-    # D3 m in "C3"  Mic distance from source
-    Tref = modelSheet_df.Range("D3").Value  # Deg C meas
-    Href = modelSheet_df.Range("E3").Value  # % r.h. meas
-    SigmaRef = modelSheet_df.Range("F3").Value  # m Flow resistivity meas
-    Em2Ref = modelSheet_df.Range("G3").Value  # Em2 turbulence factor meas
-    T1 = Tref
-    H1 = Href
 
-    # ReferenceCalc call
-    H2 = modelSheet_df.Range("H3").Value                  # m Source Height det
-    H3 = modelSheet_df.Range("I3").Value                  # m Listener Height det
-    T1 = modelSheet_df.Range("J3").Value                  # Deg C det
-    H1 = modelSheet_df.Range("K3").Value                  # % r.h. det
-    SigmaDet = modelSheet_df.Range("L3").Value
-    Em2Det = modelSheet_df.Range("M3").Value
-    WindSpeed = modelSheet_df.Range("N3").Value
-    E1 = modelSheet_df.Range("r3").Value
-    P1 = modelSheet_df.Range("s3").Value
-    P2 = modelSheet_df.Range("t3").Value
+    # m Source Height meas
+    h2ref = pd.read_excel(excel_file, sheet_name='Model', usecols='A', nrows=3)
+    h2ref = h2ref.iloc[-2,0]
 
-    # Assigning D1 to the function Dprime
+    # m Mic Height meas
+    h3ref = pd.read_excel(excel_file, sheet_name='Model', usecols='B', nrows=3)
+    h3ref = h3ref.iloc[-2,0]
+
+    # Deg C meas
+    tRef = pd.read_excel(excel_file, sheet_name='Model', usecols='D', nrows=3)
+    tRef = tRef.iloc[-2,0]
+
+    # % r.h. meas
+    hRef = pd.read_excel(excel_file, sheet_name='Model', usecols='E', nrows=3)
+    hRef = hRef.iloc[-2,0]
+
+    # m Flow resistivity meas
+    sigmaRef = pd.read_excel(excel_file, sheet_name='Model', usecols='F', nrows=3)
+    sigmaRef = sigmaRef.iloc[-2,0]
+
+    # Em2 turbulence factor meas
+    em2Ref = pd.read_excel(excel_file, sheet_name='Model', usecols='G', nrows=3)
+    em2Ref = em2Ref.iloc[-2,0]
+
+    t1 = tRef
+    h1 = hRef
+
+    # Reference Calc call
+
+    # m Source Height det
+    h2 = pd.read_excel(excel_file, sheet_name='Model', usecols='H', nrows=3)
+    h2 = h2.iloc[-2,0]
+
+    # m Listener Height det
+    h3 = pd.read_excel(excel_file, sheet_name='Model', usecols='I', nrows=3)
+    h3 = h3.iloc[-2,0]
+
+    # Deg C det
+    t1 = pd.read_excel(excel_file, sheet_name='Model', usecols='J', nrows=3)
+    t1 = t1.iloc[-2,0]
+
+    # % r.h. det
+    h1 = pd.read_excel(excel_file, sheet_name='Model', usecols='K', nrows=3)
+    h1 = h1.iloc[-2,0]
+
+    # m Flow resistivity det
+    sigmaDelt = pd.read_excel(excel_file, sheet_name='Model', usecols='L', nrows=3)
+    sigmaDelt = sigmaDelt.iloc[-2,0]
+
+    # Em2 turbulence factor det
+    em2Det = pd.read_excel(excel_file, sheet_name='Model', usecols='M', nrows=3)
+    em2Det = em2Det.iloc[-2,0]
+
+    # Wind speed det
+    windSpeed = pd.read_excel(excel_file, sheet_name='Model', usecols='N', nrows=3)
+    windSpeed = windSpeed.iloc[-2,0]
+
+    # Observer efficiency
+    e1 = pd.read_excel(excel_file, sheet_name='Model', usecols='R', nrows=3)
+    e1 = e1.iloc[-2,0]
+
+    # Hit prob
+    p1 = pd.read_excel(excel_file, sheet_name='Model', usecols='S', nrows=3)
+    p1 = p1.iloc[-2,0]
+
+    # False alarm prop
+    p2 = pd.read_excel(excel_file, sheet_name='Model', usecols='T', nrows=3)
+    p2 = p2.iloc[-2,0]
+
+    # Calculate d' statistic
     # D1 = Dprime
-    # modelSheet_df.Range("u3").Value = D1
+    # Range(u3).value = D1
 
-    WindFlag = 0
-    WindDir = " Upwind"
-    b9 = modelSheet_df.Range("H5").Value
-    b7 = modelSheet_df.Range("I5").Value
-    b8 = modelSheet_df.Range("J5").Value
-    N1 = modelSheet_df.Range("K5").Value
-    W1 = modelSheet_df.Range("L5").Value
-    W2 = modelSheet_df.Range("M5").Value
-    Fl = modelSheet_df.Range("N5").Value
-    Al = modelSheet_df.Range("O5").Value
+    windFlag = 0
+    windDir = "Upwind"
+
+    # barrier? 0 or 1
+    b9 = pd.read_excel(excel_file, sheet_name='Model', usecols='H', nrows=5)
+
+    # distance from source m
+    b7 = pd.read_excel(excel_file, sheet_name='Model', usecols='I', nrows=5)
+
+    # height m
+    b8 = pd.read_excel(excel_file, sheet_name='Model', usecols='J', nrows=5)
+
+    # foliage? 0 or 1
+    N1 = pd.read_excel(excel_file, sheet_name='Model', usecols='K', nrows=5)
+    N1 = N1 = N1.iloc[-2, 0]
+
+    # distance in meters from source to near edge of foliage
+    W1 = pd.read_excel(excel_file, sheet_name='Model', usecols='L', nrows=5)
+    W1 = W1.iloc[-2, 0]
+
+    # depth (extent) of foliage in meters
+    W2 = pd.read_excel(excel_file, sheet_name='Model', usecols='M', nrows=5)
+    W2 = W2.iloc[-2, 0]
+
+    # leaf area per unit vol dense hardwood brush in m^-1
+    Fl = pd.read_excel(excel_file, sheet_name='Model', usecols='N', nrows=5)
+    Fl = Fl.iloc[-2, 0]
+
+    # average leaf width in cm
+    Al = pd.read_excel(excel_file, sheet_name='Model', usecols='O', nrows=5)
+    Al = Al.iloc[-2, 0]
+
+    # Type of surface
     F7 = 1
     Iwthr1 = 0
     Surface = "Grass"
+
+    # Default background number 12=G.C. 11=Low EPA
     Bnumber = 11
+
+    # Typical vehicle
     Tnumber = 3
+
+    # ISO Hearing Threshold for Pure tones
     Hnumber = 2
 
 
+
+inMac()
