@@ -10,7 +10,6 @@ meas_cons = {
     'em2_meas': 0.0000006,
 }
 
-
 det_cons = {
     'source_height_det': 1.2,
     'listener_height_det': 1.2,
