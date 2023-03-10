@@ -405,7 +405,7 @@ def initMacros():
 
     # foliage? 0 or 1
     N1 = pd.read_excel(excel_file, sheet_name='Model', usecols='K', nrows=5)
-    N1 = N1 = N1.iloc[-2, 0]
+    N1 = N1.iloc[-2, 0]
 
     # distance in meters from source to near edge of foliage
     W1 = pd.read_excel(excel_file, sheet_name='Model', usecols='L', nrows=5)
@@ -449,28 +449,6 @@ def targetdBA():
     targetdBA_result = ten_divided_by_log_10 * math.log(E)
 
     return targetdBA_result
-
-#Runs parameters through set formulas and changes GEF values
-def ComplexDiv(A, B, C, D, E, F):
-    G = 1 / (C * C + D * D)
-    E = (A * C + B * D) * G
-    F = (B * C - A * D) * G
-    return 1
-
-#Runs parameters through set formulas and changes EF values
-def ComplexMul(A, B, C, D, E, F):
-    E = A * C - B * D
-    F = A * D + B * C
-    return 1
-
-# adds the previous E value in the function with the exp function of Log10Div10 * 3 separate array values
-def ListenerdBA():
-    E = float()
-    E = 0.0
-    for I in range(0, 23):
-        E = E + math.exp(Log10Div10 * (S1[I] + S3[I] + S10[I]))
-    listener_dba_return = TenDivLog10 * math.log(E)
-    return listener_dba_return
 
 def calculate_measure_dist(detection_dist: float):
     return detection_dist * 25.0
