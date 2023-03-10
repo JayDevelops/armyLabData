@@ -112,6 +112,12 @@ def inverse_distance(s8, s3, d3, d4):
             s8[i] = -0.001
         s3[i] = s8[i]
 
+        
+def normal_deviate(p):
+    t = math.sqrt(-2 * math.log(p))
+    return t - (2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481))
+
+
 """The variables that are used in this function are described as:
 
 barrier_attenuation -> Global array variable (declared in line 35 of VBA Macros). Inititalized for first time inside Barrier()
