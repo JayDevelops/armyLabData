@@ -343,6 +343,18 @@ def InitMacros():
     Tnumber = 3
     Hnumber = 2
 
+def targetdBA():
+    log_10_div_10 = 0.230258509
+    ten_divided_by_log_10 = 1 / log_10_div_10
+
+    E = float()
+    E = 0.0
+    for x in range(23):
+        E = E + math.exp(log_10_div_10 * (S1[x] + S10[x]))
+
+    targetdBA_result = ten_divided_by_log_10 * math.log(E)
+
+    return targetdBA_result
 
 def calculate_measure_dist(detection_dist: float):
     return detection_dist * 25.0
