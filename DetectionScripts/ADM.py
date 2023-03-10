@@ -102,7 +102,7 @@ def ansi_humidity():
 
 
 def inverse_distance(s8, s3, d3, d4):
-    TEN_DIV_NATURAL_LOG10= (10 / math.log(10, 10))
+    _NATURAL_LOG10= (10 / math.log(10, 10))
     #D4 should be mic distance source m. changes depending on what macro is used. Can also be detect distance
     p_inv = 2 * TEN_DIV_NATURAL_LOG10 * math.log(d3 / d4) #Inverse distance loss from D3 to D4. D3 is the mic distance from the target from excel.
 
@@ -113,7 +113,6 @@ def inverse_distance(s8, s3, d3, d4):
         s3[i] = s8[i]
 
 """The variables that are used in this function are described as:
-
 barrier_attenuation -> Global array variable (declared in line 35 of VBA Macros). Inititalized for first time inside Barrier()
 detection_dist -> Global 'double' variable (declared in line 13 of VBA Macros). It is also used in GroundEffect() on line 186
 distance_from_source -> initialized from excel cell "I5" (line 579)
@@ -164,6 +163,25 @@ def Barrier():
 
 
 
+def binary_search(m_meas_distance, D5, D6, M2, precision_fraction):
+    Z9 = -1
+    detection_dist = m_meas_distance * 25
+
+    while M2 < 0:
+        Z9 = Z9 + 1
+        D5 = detection_dist
+        detection_dist = 2 * detection_dist
+        D6 = detection_dist
+
+    if Z9 == 0:
+        while abs(D6 - D5) < precision_fraction * detection_dist:
+            detection_dist = (D5 + D6) / 2
+
+            if M2 > 0:
+                D5 = detection_dist
+            else:
+                D6 = detection_dist
+
 
 """
 ground_effect_reference(26) is 'Reference Ground Effect during measurement' from .vbs file
@@ -174,6 +192,244 @@ def reference_calc(ground_effect_ref):
         AtmAbsRef(I) = atmos_absorption(I)
 
 
+def Foliage(N1, D4, W1, W2, Fl, Cs, Al, S4, S8, S3):
+    excel_file = "ADM - from Joel - Sept-2013.xls"
+    modelSheet_df = pd.read_excel("ADM - from Joel - Sept-2013.xls", sheet_name="Model", usecols='A:V')
+    dataSheet_df = pd.read_excel("ADM - from Joel - Sept-2013.xls", sheet_name="Data")
+    
+    N1 = pd.read_excel(excel_file, sheet_name='Model', usecols='K', nrows=5)
+    D4 = pd.read_excel(excel_file, sheet_name='Model', usecols='C', nrows=5)
+    W1 = pd.read_excel(excel_file, sheet_name='Model', usecols='L', nrows=5)
+    W2 = pd.read_excel(excel_file, sheet_name='Model', usecols='M', nrows=5)
+    Fl = pd.read_excel(excel_file, sheet_name='Model', usecols='N', nrows=5)
+    Al = pd.read_excel(excel_file, sheet_name='Model', usecols='O', nrows=5)
+    N1 = N1.iloc[-2, 0]
+    D4 = D4.iloc[-3, 0]
+    W1 = W1.iloc[-2, 0]
+    W2 = W2.iloc[-2, 0]
+    Fl = Fl.iloc[-2, 0]
+    Al = Al.iloc[-2, 0]
+    S4 = dataSheet_df.iloc[:-3,0].values.tolist()
+    Cs = 340.29
+    S8 = [0] * 24
+    S3 = [0] * 24
+    Fo = [-0.001] * 24
+    Fo_list = []
+
+    if N1 > 0:
+        # If detection distance is greater than the distance from source to edge of foliage
+        if D4 > W1:
+            # Sets the distance difference to X2
+            X2 = D4 - W1
+            # If the new detection distance is greater than depth (extent) of foliage in meters
+            if X2 > W2:
+                # Set distance the depth (extent) of foliage in meters
+                X2 = W2
+            X2 = math.sqrt(X2)
+            Cons = 2.647 / math.log(10)
+
+            for I in range(10, 24):
+                Ka = (2 * math.pi * S4[I] / Cs) * Al / 100
+                if Ka < 0.401:
+                    Fo[I] = -0.01
+                elif Ka < 5:
+                    Fo[I] = -X2 * math.sqrt(Fl) * (Cons * math.log(Ka) + 1.05)
+                else:
+                    Fo[I] = -X2 * math.sqrt(Fl) * 2.9
+                Fo_list.append(Fo)
+    else:
+        for I in range(0, 24):
+            S8[I] = Fo[I]
+            S3[I] = S3[I] + S8[I]
+            Fo_list.append(S3)
+    return Fo_list
+
+def initMacros():
+    excel_file = "ADM - from Joel - Sept-2013.xls"
+    modelSheet_df = pd.read_excel("ADM - from Joel - Sept-2013.xls", sheet_name="Model", usecols='A:V')
+    dataSheet_df = pd.read_excel("ADM - from Joel - Sept-2013.xls", sheet_name="Data")
+    Trg = pd.read_excel(excel_file,sheet_name="Model",usecols='B',nrows=5)
+    Bkg = pd.read_excel(excel_file,sheet_name="Model",usecols='C',nrows=5)
+    Hth = pd.read_excel(excel_file,sheet_name="Model",usecols='D',nrows=5)
+
+    # Extract the frequency values from the first column of the DataFrame
+    S4 = dataSheet_df.iloc[:-3,0].values.tolist()
+    
+    # Loading Frequency values from data to model sheet
+    for i in range(len(S4)):
+        # Get the value from the first column of the current row in "Data" sheet
+        freqValues = S4[i]
+        
+        # Assign the value to S4 and the corresponding cell in "Model" sheet
+        modelSheet_df.loc[7+i, 'A'] = freqValues
+
+    if Trg.iloc[-1,0] != 0:
+        # Target Spectrum
+        S1 = dataSheet_df.iloc[:-3,1].values.tolist()
+        
+        for i in range(len(S1)):
+            targetValues = S1[i]
+            modelSheet_df.iloc[i+7, 1] = targetValues
+
+        # Load D3 Value from Data sheet to Model sheet
+        D3 = dataSheet_df.iloc[24,Trg.iloc[-1].astype(int)].values
+        
+        modelSheet_df.iloc[2,2] = D3
+
+    # else:
+    #     # Check if a distance value exists in Cell C3 for Microphone from Source
+    #     Rg1 = modelSheet_df.iloc[2, 2]
+    #
+    #     if isinstance(Rg1, (int, float)) and len(str(Rg1)) > 0:
+    #         D3 = Rg1
+    #
+    #     else:
+    #         # MsgBox("Enter a Distance in meters in Cell C3 for Microphone from Source")
+    #         return
+
+    if Bkg.iloc[-1,0] != 0:
+        S6 = dataSheet_df.iloc[:-3,Bkg.iloc[-1,0]].values.tolist()
+        for i in range(len(S6)):
+            bkgNoiseValues = S6[i]
+            modelSheet_df.iloc[i+7, 2] = bkgNoiseValues
+
+    if Hth.iloc[-1,0] != 0:
+        s5 = dataSheet_df.iloc[:-3,Hth.iloc[-1,0]].values.tolist()
+        for i in range(len(s5)):
+            hearingValues = s5[i]
+            modelSheet_df.iloc[i+7, 3] = hearingValues
+
+    # -----------------------------------------------------------------------------------------------
+    # Loading Ai weights
+    s5 = dataSheet_df.iloc[:-3,35].values.tolist()
+    AiWt = dataSheet_df.iloc[:-3,37].values.tolist()
+
+    Log10Div10 = 0.230258509
+    TenDivLog10 = 1 / Log10Div10
+    Log10 = 2.302585093
+    Co = 331.32
+    Too = 273.15
+    A1 = 0.001
+
+    # m Source Height meas
+    h2ref = pd.read_excel(excel_file, sheet_name='Model', usecols='A', nrows=3)
+    h2ref = h2ref.iloc[-2,0]
+
+    # m Mic Height meas
+    h3ref = pd.read_excel(excel_file, sheet_name='Model', usecols='B', nrows=3)
+    h3ref = h3ref.iloc[-2,0]
+
+    # Deg C meas
+    tRef = pd.read_excel(excel_file, sheet_name='Model', usecols='D', nrows=3)
+    tRef = tRef.iloc[-2,0]
+
+    # % r.h. meas
+    hRef = pd.read_excel(excel_file, sheet_name='Model', usecols='E', nrows=3)
+    hRef = hRef.iloc[-2,0]
+
+    # m Flow resistivity meas
+    sigmaRef = pd.read_excel(excel_file, sheet_name='Model', usecols='F', nrows=3)
+    sigmaRef = sigmaRef.iloc[-2,0]
+
+    # Em2 turbulence factor meas
+    em2Ref = pd.read_excel(excel_file, sheet_name='Model', usecols='G', nrows=3)
+    em2Ref = em2Ref.iloc[-2,0]
+
+    t1 = tRef
+    h1 = hRef
+
+    # Reference Calc call
+    reference_calc()
+
+    # m Source Height det
+    h2 = pd.read_excel(excel_file, sheet_name='Model', usecols='H', nrows=3)
+    h2 = h2.iloc[-2,0]
+
+    # m Listener Height det
+    h3 = pd.read_excel(excel_file, sheet_name='Model', usecols='I', nrows=3)
+    h3 = h3.iloc[-2,0]
+
+    # Deg C det
+    t1 = pd.read_excel(excel_file, sheet_name='Model', usecols='J', nrows=3)
+    t1 = t1.iloc[-2,0]
+
+    # % r.h. det
+    h1 = pd.read_excel(excel_file, sheet_name='Model', usecols='K', nrows=3)
+    h1 = h1.iloc[-2,0]
+
+    # m Flow resistivity det
+    sigmaDelt = pd.read_excel(excel_file, sheet_name='Model', usecols='L', nrows=3)
+    sigmaDelt = sigmaDelt.iloc[-2,0]
+
+    # Em2 turbulence factor det
+    em2Det = pd.read_excel(excel_file, sheet_name='Model', usecols='M', nrows=3)
+    em2Det = em2Det.iloc[-2,0]
+
+    # Wind speed det
+    windSpeed = pd.read_excel(excel_file, sheet_name='Model', usecols='N', nrows=3)
+    windSpeed = windSpeed.iloc[-2,0]
+
+    # Observer efficiency
+    e1 = pd.read_excel(excel_file, sheet_name='Model', usecols='R', nrows=3)
+    e1 = e1.iloc[-2,0]
+
+    # Hit prob
+    p1 = pd.read_excel(excel_file, sheet_name='Model', usecols='S', nrows=3)
+    p1 = p1.iloc[-2,0]
+
+    # False alarm prop
+    p2 = pd.read_excel(excel_file, sheet_name='Model', usecols='T', nrows=3)
+    p2 = p2.iloc[-2,0]
+
+    # Calculate d' statistic
+    # D1 = Dprime
+    # Range(u3).value = D1
+
+    windFlag = 0
+    windDir = "Upwind"
+
+    # barrier? 0 or 1
+    b9 = pd.read_excel(excel_file, sheet_name='Model', usecols='H', nrows=5)
+
+    # distance from source m
+    b7 = pd.read_excel(excel_file, sheet_name='Model', usecols='I', nrows=5)
+
+    # height m
+    b8 = pd.read_excel(excel_file, sheet_name='Model', usecols='J', nrows=5)
+
+    # foliage? 0 or 1
+    N1 = pd.read_excel(excel_file, sheet_name='Model', usecols='K', nrows=5)
+    N1 = N1 = N1.iloc[-2, 0]
+
+    # distance in meters from source to near edge of foliage
+    W1 = pd.read_excel(excel_file, sheet_name='Model', usecols='L', nrows=5)
+    W1 = W1.iloc[-2, 0]
+
+    # depth (extent) of foliage in meters
+    W2 = pd.read_excel(excel_file, sheet_name='Model', usecols='M', nrows=5)
+    W2 = W2.iloc[-2, 0]
+
+    # leaf area per unit vol dense hardwood brush in m^-1
+    Fl = pd.read_excel(excel_file, sheet_name='Model', usecols='N', nrows=5)
+    Fl = Fl.iloc[-2, 0]
+
+    # average leaf width in cm
+    Al = pd.read_excel(excel_file, sheet_name='Model', usecols='O', nrows=5)
+    Al = Al.iloc[-2, 0]
+
+    # Type of surface
+    F7 = 1
+    Iwthr1 = 0
+    Surface = "Grass"
+
+    # Default background number 12=G.C. 11=Low EPA
+    Bnumber = 11
+
+    # Typical vehicle
+    Tnumber = 3
+
+    # ISO Hearing Threshold for Pure tones
+    Hnumber = 2
 
 
 def calculate_measure_dist(detection_dist: float):
