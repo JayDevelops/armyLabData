@@ -223,8 +223,8 @@ Function Barrier()
   Next I
   If barrier_number > 0 Then
     If detection_dist >= distance_from_source Then
-      Hba = b8 - (source_height_det + distance_from_source * (listener_height_det - source_height_det) / detection_dist)
-      X1 = Sqr(distance_from_source * distance_from_source + (b8 - source_height_det) * (barrier_height_det - source_height_det))
+      Hba = barrier_height_det - (source_height_det + distance_from_source * (listener_height_det - source_height_det) / detection_dist)
+      X1 = Sqr(distance_from_source * distance_from_source + (barrier_height_det - source_height_det) * (barrier_height_det - source_height_det))
       X1 = X1 + Sqr((detection_dist - distance_from_source) * (detection_dist - distance_from_source) + (barrier_height_det - listener_height_det) * (barrier_height_det - listener_height_det))
       X1 = X1 - Sqr(detection_dist * detection_dist + (listener_height_det - source_height_det) * (listener_height_det - source_height_det))
       Cs = 331.4 * Sqr(1 + celsius_degrees_det / 273.15)
