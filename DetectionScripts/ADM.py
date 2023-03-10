@@ -188,8 +188,38 @@ def binary_search(m_meas_distance, D5, D6, M2, precision_fraction):
                 D5 = detection_dist
             else:
                 D6 = detection_dist
+                
+                
+#NEEDS WORK <------------------------------------------------
+def binary_searchA(m_meas_distance, D5, D6, M2, precision_fraction):
+    Z9 = -1
+    detection_dist = m_meas_distance * 25
 
+    while M2 < 0:
+        Z9 = Z9 + 1
+        D5 = detection_dist
+        detection_dist = 2 * detection_dist
+        D6 = detection_dist
 
+    if Z9 == 0:
+        while abs(D6 - D5) < precision_fraction * detection_dist:
+            detection_dist = (D5 + D6) / 2
+
+            if M2 > 0:
+                D5 = detection_dist
+            else:
+                D6 = detection_dist
+
+                
+#NEEDS WORK <------------------------------------------------                
+def ingard():
+    print("Needs Work")
+
+    
+def dprime():
+    print("Needs Work")
+    
+    
 """
 ground_effect_reference(26) is 'Reference Ground Effect during measurement' from .vbs file
 """
