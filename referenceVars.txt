@@ -1,0 +1,35 @@
+Trg = Sheets("Model").Range("B6").Value
+Bkg = Sheets("Model").Range("C6").Value
+Hth = Sheets("Model").Range("D6").Value
+
+freq(I) = Sheets("Data").Range("A2").Offset(I, 0).Value
+Sheets("Model").Range("A8").Offset(I, 0).Value = freq(I)
+
+source_height_det = Range("H3").Value ' m Source Height (detection conditions)
+listener_height_det = Range("I3").Value ' m Listener Height det
+celsius_degrees_det = Range("J3").Value    ' Deg C det
+relative_humid_percent = Range("K3").Value    ' % relative humidity det
+SigmaDet = Range("L3").Value ' m Flow resistivity det
+Em2Det = Range("M3").Value   ' Em2 turbulence factor det
+WindSpeed = Range("N3").Value ' wind_refrac_loss speed det
+observer_efficiency = Range("r3").Value  ' Observer efficiency
+hit_prob = Range("s3").Value  ' Hit prob
+false_alarm_rate = Range("t3").Value  ' False alarm prop
+calculate_d = Dprime             ' Calculate d' statistic
+Range("u3").Value = calculate_d
+WindFlag = 0
+WindDir = " Upwind"
+barrier_number = Range("H5").Value ' barrier? 0 or 1
+distance_from_source = Range("I5").Value ' distance from source m
+barrier_height_det = Range("J5").Value ' barrier height detec m
+foliated_zone_nums = Range("K5").Value ' foliage? 0 or 1
+distance_frmSource_to_fol = Range("L5").Value ' distance in meters from source to near edge of foliage
+extent_of_foliage = Range("M5").Value ' depth (extent) of foliage in meters
+leaf_area_per_unit = Range("N5").Value ' leaf area per unit vol dense hardwood brush in m^-1
+avg_leaf_width = Range("O5").Value ' average leaf width in cm.
+type_of_surface = 1   ' Type of surface
+Iwthr1 = 0
+Surface = "Grass"
+deflt_bkg_num = 11 ' Default background number 12=G.C. 11=Low EPA
+typical_vehicle = 3   ' Typical vehicle
+Hnumber = 2  ' ISO Hearing Threshold for Pure tones
