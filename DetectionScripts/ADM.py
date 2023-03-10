@@ -2,9 +2,6 @@ import math
 
 import pandas as pd
 
-s1 = []
-s10 = []
-
 # Reads "Data" sheet from ADM by Joel for reference values and returns it
 def read_data():
     adm_data_df = pd.read_excel('ADM - from Joel - Sept-2013.xls', sheet_name='Data')
@@ -81,12 +78,15 @@ def reference_calc(sigma: float, source_height_condition: float,
 def calculate_measure_dist(detection_dist: float):
     return detection_dist * 25.0
 
-def targetdBA(E: double):
-    ten_divided_by_log_10, log_10_div_10 = (10 / math.log(10, 10)), (math.log(10,10) / 10)
-    E = 0
-    for x in range(0, 23):
-        E = E + math.exp(log_10_div_10 * s1[x], s10[x]) 
-    
-    targetdBA = ten_divided_by_log_10 * math.log(E, 10)
+def targetdBA():
+    log_10_div_10 = 0.230258509
+    ten_divided_by_log_10 = 1 / log_10_div_10
 
-    return targetdBA
+    E = float()
+    E = 0.0
+    for x in range(23):
+        E = E + math.exp(log_10_div_10 * (S1[x] + S10[x])) 
+    
+    targetdBA_result = ten_divided_by_log_10 * math.log(E)
+
+    return targetdBA_result
