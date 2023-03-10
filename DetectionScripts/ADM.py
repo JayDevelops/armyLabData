@@ -1,6 +1,6 @@
 import pandas as pd  # Install pandas in python or use Anaconda environment
 import data  # python module including helper functions (In our case, translated Macros from ADM by Jeol)
-
+import math
 
 def Detection():
     # data_df = data.read_data()
@@ -102,7 +102,7 @@ def ansi_humidity():
 
 
 def inverse_distance(s8, s3, d3, d4):
-    TEN_DIV_NATURAL_LOG10= (10 / math.log(10, 10))
+    _NATURAL_LOG10= (10 / math.log(10, 10))
     #D4 should be mic distance source m. changes depending on what macro is used. Can also be detect distance
     p_inv = 2 * TEN_DIV_NATURAL_LOG10 * math.log(d3 / d4) #Inverse distance loss from D3 to D4. D3 is the mic distance from the target from excel.
 
@@ -112,6 +112,25 @@ def inverse_distance(s8, s3, d3, d4):
             s8[i] = -0.001
         s3[i] = s8[i]
 
+
+def binary_search(m_meas_distance, D5, D6, M2, precision_fraction):
+    Z9 = -1
+    detection_dist = m_meas_distance * 25
+
+    while M2 < 0:
+        Z9 = Z9 + 1
+        D5 = detection_dist
+        detection_dist = 2 * detection_dist
+        D6 = detection_dist
+
+    if Z9 == 0:
+        while abs(D6 - D5) < precision_fraction * detection_dist:
+            detection_dist = (D5 + D6) / 2
+
+            if M2 > 0:
+                D5 = detection_dist
+            else:
+                D6 = detection_dist
 
 
 """
