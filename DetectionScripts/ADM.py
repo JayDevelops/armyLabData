@@ -2,6 +2,9 @@ import pandas as pd  # Install pandas in python or use Anaconda environment
 import data  # python module including helper functions (In our case, translated Macros from ADM by Jeol)
 import math
 
+# global variables
+prop_loss_cum = 0
+
 def Detection():
     # data_df = data.read_data()
     # print(data_df.iloc[:,29:34])
@@ -117,6 +120,27 @@ def normal_deviate(p):
     t = math.sqrt(-2 * math.log(p))
     return t - (2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481))
 
+def ground_effect():
+    TrgHgt = source_height_det
+    DetHgt = listener_height_det
+    R = detection_dist
+    Sigma = SigmaDet
+    Em2 = Em2Det
+    windspeed = wind_speed
+    Iwthr1 = 0
+    if (Iwthr1 == 0):
+        # calls Ingard()
+        if (windspeed >= 0):
+            for i in range(24):
+                prop_loss_indiv[i] = ground_effect_ingard[i] - gournd_effect_initial[i]
+                if (prop_loss_indiv[i] == 0):
+                    prop_loss_indiv[i] = -0.01
+                prop_loss_cum[i] = prop_loss_cum[i] + prop_loss_indiv[i]
+        else:
+            for i in range(24):
+                if (prop_loss_indiv[i] == 0):
+                    prop_loss_indiv[i] = -0.001
+                prop_loss_indiv[i] = ground_effect_ingard[i] - ground_effect_initial[i]
 
 """The variables that are used in this function are described as:
 
