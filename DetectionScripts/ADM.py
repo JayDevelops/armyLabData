@@ -239,9 +239,54 @@ def binary_searchA(m_meas_distance, D5, D6, M2, precision_fraction):
 def ingard():
     print("Needs Work")
 
-#NEEDS WORK <------------------------------------------------     
-def dprime():
-    print("Needs Work")
+     
+def Dprime(hit_prob, NormalDeviate, false_alarm_rate, mod_background_noise, background_noise_spec, 
+           TenDivLog10, observer_efficiency, B3, one_third_oct_band_weight, Log10Div10, hearing_threshold,
+           max_modBackground_thresh, mod_background_noise_2):
+    """
+    Functions called in Dprime -> NormalDeviate, mod_background_noise, background_noise_spec, B3,
+    one_third_oct_band_weight, max_modBackground_thresh, hearing_threshold, mod_background_noise_2
+    
+    ***The rest in parameter list are variables
+    """
+
+    if(hit_prob > 0.5):
+        Z3 = NormalDeviate(1 - hit_prob)
+    else:
+        Z3 = NormalDeviate(hit_prob)
+    
+    if(false_alarm_rate > 0.5):
+        Z = NormalDeviate(1 - false_alarm_rate)
+    else:
+        Z = NormalDeviate(false_alarm_rate)      
+    calculate_d = Z3 - Z
+    
+    if(hit_prob > 0.5):
+        if(false_alarm_rate > 0.5):
+            calculate_d = Z3 - Z
+        else:
+            calculate_d = Z3 + Z
+    else:
+        calculate_d = Z - Z3   
+    Dprime = calculate_d
+    
+    for I in range(24):
+        if(I > 10):
+            mod_background_noise[I] = background_noise_spec(I) + TenDivLog10 * math.log(calculate_d / observer_efficiency / B3(I))
+        else:
+            E4 = 0
+            for J in range(5):
+                I0 = I + J - 2
+                W4 = one_third_oct_band_weight(I, J)
+                if((W4 > 0) and (I0 >= 0)):
+                    E4 += W4 * math.exp(Log10Div10 * background_noise_spec(I0))
+            mod_background_noise[I] = TenDivLog10 * math.log(E4 * calculate_d / observer_efficiency / B3(I))
+            
+        if(hearing_threshold(I) > mod_background_noise(I)):
+            max_modBackground_thresh[I] = hearing_threshold(I)
+        else:
+            max_modBackground_thresh[I] = mod_background_noise(I)  
+        mod_background_noise_2[I] = max_modBackground_thresh(I)
     
     
 """
