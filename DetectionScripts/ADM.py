@@ -1,6 +1,7 @@
 import pandas as pd  # Install pandas in python or use Anaconda environment
 import data  # python module including helper functions (In our case, translated Macros from ADM by Jeol)
 import math
+import data_dict
 
 def Detection():
     # data_df = data.read_data()
@@ -67,8 +68,6 @@ def atmosphere(s3, s8, atm_abs, atm_abs_ref):
             s8[i] = -0.001
         s3[i] = s3[i] + s8[i]
 
-def Ingard():
-    return 2
 
 def ansi_humidity():
     TOO = 273.15
