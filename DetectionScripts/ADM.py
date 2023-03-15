@@ -225,6 +225,18 @@ def Foliage(N1, D4, W1, W2, Fl, Cs, Al, S4, S8, S3):
             Fo_list.append(S3)
     return Fo_list
 
+def Propagate():
+    InverseDistance()
+    GroundEffect()
+    Barrier()
+    Foliage()
+    'If Iwthr1 = 0 Then Winds
+    Atmosphere()
+    SignalNoise()
+    
+def Reverse():
+    Propagate()
+
 def InitMacros():
     # Rg1 = Range()
     # Delete all charts
