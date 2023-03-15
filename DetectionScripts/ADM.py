@@ -2,9 +2,6 @@ import pandas as pd  # Install pandas in python or use Anaconda environment
 import data  # python module including helper functions (In our case, translated Macros from ADM by Jeol)
 import math
 
-# global variables
-prop_loss_cum = 0
-
 def Detection():
     # data_df = data.read_data()
     # print(data_df.iloc[:,29:34])
@@ -115,29 +112,6 @@ def inverse_distance(s8, s3, d3, d4):
             s8[i] = -0.001
         s3[i] = s8[i]
 
-def ground_effect():
-    TrgHgt = source_height_det
-    DetHgt = listener_height_det
-    R = detection_dist
-    Sigma = SigmaDet
-    Em2 = Em2Det
-    windspeed = wind_speed
-    Iwthr1 = 0
-    if (Iwthr1 == 0):
-        # calls Ingard()
-        if (windspeed >= 0):
-            for i in range(24):
-                prop_loss_indiv[i] = ground_effect_ingard[i] - gournd_effect_initial[i]
-                if (prop_loss_indiv[i] == 0):
-                    prop_loss_indiv[i] = -0.01
-                prop_loss_cum[i] = prop_loss_cum[i] + prop_loss_indiv[i]
-        else:
-            for i in range(24):
-                if (prop_loss_indiv[i] == 0):
-                    prop_loss_indiv[i] = -0.001
-                prop_loss_indiv[i] = ground_effect_ingard[i] - ground_effect_initial[i]
-
-
 """The variables that are used in this function are described as:
 
 barrier_attenuation -> Global array variable (declared in line 35 of VBA Macros). Inititalized for first time inside Barrier()
@@ -220,7 +194,6 @@ def reference_calc(ground_effect_ref):
 
 
 
-
 def calculate_measure_dist(detection_dist: float):
     return detection_dist * 25.0
 
@@ -232,6 +205,3 @@ def main():
     # of which Macro to call
     Detection()
 
-
-if __name__ == '__main__':
-    main()
