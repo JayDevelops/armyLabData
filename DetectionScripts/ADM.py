@@ -112,6 +112,12 @@ def inverse_distance(s8, s3, d3, d4):
             s8[i] = -0.001
         s3[i] = s8[i]
 
+        
+def normal_deviate(p):
+    t = math.sqrt(-2 * math.log(p))
+    return t - (2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481))
+
+
 """The variables that are used in this function are described as:
 barrier_attenuation -> Global array variable (declared in line 35 of VBA Macros). Inititalized for first time inside Barrier()
 barrier_number -> Integer representing a binary decision (is there a barrier or not)
@@ -187,8 +193,38 @@ def binary_search(m_meas_distance, D5, D6, M2, precision_fraction):
                 D5 = detection_dist
             else:
                 D6 = detection_dist
+                
+                
+#NEEDS WORK <------------------------------------------------
+def binary_searchA(m_meas_distance, D5, D6, M2, precision_fraction):
+    Z9 = -1
+    detection_dist = m_meas_distance * 25
 
+    while M2 < 0:
+        Z9 = Z9 + 1
+        D5 = detection_dist
+        detection_dist = 2 * detection_dist
+        D6 = detection_dist
 
+    if Z9 == 0:
+        while abs(D6 - D5) < precision_fraction * detection_dist:
+            detection_dist = (D5 + D6) / 2
+
+            if M2 > 0:
+                D5 = detection_dist
+            else:
+                D6 = detection_dist
+
+                
+#NEEDS WORK <------------------------------------------------                
+def ingard():
+    print("Needs Work")
+
+#NEEDS WORK <------------------------------------------------     
+def dprime():
+    print("Needs Work")
+    
+    
 """
 ground_effect_reference(26) is 'Reference Ground Effect during measurement' from .vbs file
 """
@@ -279,7 +315,6 @@ def initMacros():
 
         # Load D3 Value from Data sheet to Model sheet
         D3 = dataSheet_df.iloc[24,Trg.iloc[-1].astype(int)].values
-        
         modelSheet_df.iloc[2,2] = D3
 
     # else:
@@ -388,8 +423,8 @@ def initMacros():
     p2 = p2.iloc[-2,0]
 
     # Calculate d' statistic
-    # D1 = Dprime
-    # Range(u3).value = D1
+    D1 = pd.read_excel(excel_file, sheet_name='Model', usecols='U', nrows=3)
+    D1 = D1.iloc[-2, 0]
 
     windFlag = 0
     windDir = "Upwind"
@@ -405,7 +440,7 @@ def initMacros():
 
     # foliage? 0 or 1
     N1 = pd.read_excel(excel_file, sheet_name='Model', usecols='K', nrows=5)
-    N1 = N1 = N1.iloc[-2, 0]
+    N1 = N1.iloc[-2, 0]
 
     # distance in meters from source to near edge of foliage
     W1 = pd.read_excel(excel_file, sheet_name='Model', usecols='L', nrows=5)
@@ -437,6 +472,40 @@ def initMacros():
     # ISO Hearing Threshold for Pure tones
     Hnumber = 2
 
+def targetdBA():
+    log_10_div_10 = 0.230258509
+    ten_divided_by_log_10 = 1 / log_10_div_10
+
+    E = float()
+    E = 0.0
+    for x in range(23):
+        E = E + math.exp(log_10_div_10 * (S1[x] + S10[x]))
+
+    targetdBA_result = ten_divided_by_log_10 * math.log(E)
+
+    return targetdBA_result
+
+#Runs parameters through set formulas and changes GEF values
+def ComplexDiv(A, B, C, D, E, F):
+    G = 1 / (C * C + D * D)
+    E = (A * C + B * D) * G
+    F = (B * C - A * D) * G
+    return 1
+
+#Runs parameters through set formulas and changes EF values
+def ComplexMul(A, B, C, D, E, F):
+    E = A * C - B * D
+    F = A * D + B * C
+    return 1
+
+# adds the previous E value in the function with the exp function of Log10Div10 * 3 separate array values
+def ListenerdBA():
+    E = float()
+    E = 0.0
+    for I in range(0, 23):
+        E = E + math.exp(Log10Div10 * (S1[I] + S3[I] + S10[I]))
+    listener_dba_return = TenDivLog10 * math.log(E)
+    return listener_dba_return
 
 def calculate_measure_dist(detection_dist: float):
     return detection_dist * 25.0
