@@ -215,6 +215,20 @@ def binary_searchA(m_meas_distance, D5, D6, M2, precision_fraction):
             else:
                 D6 = detection_dist
 
+def Propagate():
+    InverseDistance()
+    GroundEffect()
+    Barrier()
+    Foliage()
+    'If Iwthr1 = 0 Then Winds
+    Atmosphere()
+    SignalNoise()
+    print(Propagate)
+    
+def Reverse():
+    Propagate()
+    print(Reverse)
+    
                 
 #NEEDS WORK <------------------------------------------------                
 def ingard():
