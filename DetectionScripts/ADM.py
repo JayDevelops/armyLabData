@@ -377,6 +377,19 @@ def InitMacros():
     Tnumber = 3
     Hnumber = 2
 
+#Runs parameters through set formulas and changes GEF values
+def ComplexDiv(A, B, C, D, E, F):
+    G = 1 / (C * C + D * D)
+    E = (A * C + B * D) * G
+    F = (B * C - A * D) * G
+    return 1
+
+#Runs parameters through set formulas and changes EF values
+def ComplexMul(A, B, C, D, E, F):
+    E = A * C - B * D
+    F = A * D + B * C
+    return 1
+    
 def targetdBA():
     log_10_div_10 = 0.230258509
     ten_divided_by_log_10 = 1 / log_10_div_10
