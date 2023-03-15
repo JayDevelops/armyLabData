@@ -207,11 +207,13 @@ def inverse_distance(s8, s3, d3, d4):
         s3[i] = s8[i]
         
  def ground_effect():
-     TrgHgt = source_height_det
-     DetHgt = listener_height_det
+     height_source = source_height_det
+     height_listener = listener_height_det
      R = detection_dist
      Sigma = SigmaDet
      Em2 = Em2Det
+     TrgHgt = height_source
+     DetHgt = height_listener
      windspeed = wind_speed
      Iwthr1 = 0
      if (Iwthr1 == 0):
