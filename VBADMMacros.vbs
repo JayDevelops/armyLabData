@@ -9,7 +9,7 @@ Public X1, X2, X3, distance_from_source, b8, Ka, distance_frmSource_to_fol, exte
 Public Ea, dBa
 
 
-Public m_meas_distance As Single     ' m Meas Dist
+Public m_meas_distance_D3 As Single     ' m Meas Dist
 Public detection_dist As Single     ' Detection Dist
 Public barrier_number As Integer     ' Barrier number
 Public foliated_zone_nums As Integer     ' Foliated-zone numbers
