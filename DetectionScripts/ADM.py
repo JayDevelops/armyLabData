@@ -307,7 +307,7 @@ ground_effect_reference(26) is 'Reference Ground Effect during measurement' from
 """
 def reference_calc(ground_effect_ref):
     for I in range(0,23):
-        ground_effect_ref(I) = ground_effect(I)
+        ground_effect_ref[I] = ground_effect(I)
         AtmAbsRef(I) = atmos_absorption(I)
 
 
