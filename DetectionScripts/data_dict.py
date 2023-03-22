@@ -47,3 +47,7 @@ given_cons = {
     'bkg_name': 'Urban',
     'hth_name': 'ISO std',
 }
+
+math_constants = {
+    
+}

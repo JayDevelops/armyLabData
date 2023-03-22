@@ -1,6 +1,7 @@
 import pandas as pd  # Install pandas in python or use Anaconda environment
-import data  # python module including helper functions (In our case, translated Macros from ADM by Jeol)
+# import data  # python module including helper functions (In our case, translated Macros from ADM by Jeol)
 import math
+import data_dict
 
 def Detection():
     # data_df = data.read_data()
@@ -21,41 +22,36 @@ def Detection():
     ai_weights_df = data_df['A.I. weights']
     third_octave_bands_df = data_df.iloc[:, 29:34].copy()
 
-    # #Find and set all necessary dataframes for further processing
-    # freq_df, target_df, bkg_noise_df, \
-    #     hear_thresh_df, awt_weights, ai_weights_df, \
-    #     third_obands_df = data.get_data(Trg_name, Bkg_name, Hth_name, data_df)
 
-    # print(third_obands_df)
 
-# Extract relevant reference values to be used in calcuating detectability. InitMacros()
-def get_data(target, background_noise, hearing_th, df):
-    mic_distance = df.at[24, target]
+# # Extract relevant reference values to be used in calcuating detectability. InitMacros()
+# def get_data(target, background_noise, hearing_th, df):
+#     mic_distance = df.at[24, target]
 
-    # Drop Extra Rows at the bottom
-    df = df.drop(range(24, 27))
+#     # Drop Extra Rows at the bottom
+#     df = df.drop(range(24, 27))
 
-    # Extract colums from main df
-    freq_df = df['Freq Hz']
-    target_df = df[target]
-    bkg_df = df[background_noise]
-    ht_df = df[hearing_th]
-    awt_weights_df = df['Awt weights']
-    ai_weights_df = df['A.I. weights']
+#     # Extract colums from main df
+#     freq_df = df['Freq Hz']
+#     target_df = df[target]
+#     bkg_df = df[background_noise]
+#     ht_df = df[hearing_th]
+#     awt_weights_df = df['Awt weights']
+#     ai_weights_df = df['A.I. weights']
 
-    # print(freq_df)
-    # print(target_df)
-    # print(bkg_df)
-    # print(ht_df)
-    # print(awt_weights_df)
-    # print(ai_weights_df)
-    # Drop extra rows at the bottom of each df
-    # freq_df = freq_df.drop(range(24,27))
-    # target_df = target_df.drop(range(24,27))
-    # bkg_df = bkg_df.drop(range(24,27))
-    # ht_df = ht_df.drop(range(24,27))
-    # awt_weights_df = awt_weights_df.drop(range(24,27))
-    # ai_weights_df = ai_weights_df.drop(range(24,27))
+#     # print(freq_df)
+#     # print(target_df)
+#     # print(bkg_df)
+#     # print(ht_df)
+#     # print(awt_weights_df)
+#     # print(ai_weights_df)
+#     # Drop extra rows at the bottom of each df
+#     # freq_df = freq_df.drop(range(24,27))
+#     # target_df = target_df.drop(range(24,27))
+#     # bkg_df = bkg_df.drop(range(24,27))
+#     # ht_df = ht_df.drop(range(24,27))
+#     # awt_weights_df = awt_weights_df.drop(range(24,27))
+#     # ai_weights_df = ai_weights_df.drop(range(24,27))
 
 def atmosphere(s3, s8, atm_abs, atm_abs_ref):
     ansi_humidity()
