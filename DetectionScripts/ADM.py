@@ -68,7 +68,101 @@ def atmosphere(s3, s8, atm_abs, atm_abs_ref):
         s3[i] = s3[i] + s8[i]
 
 def Ingard():
-    return 2
+  HspHr = Hs + Hr
+  HsmHr = Hs - Hr
+  R1 = math.sqrt(R * R + HsmHr * HsmHr)
+  R2 = math.sqrt(R * R + HspHr * HspHr)
+  R12 = R1 / R2
+  Dr = R2 - R1
+  SinTheta1 = HspHr / R2
+  CosTheta1 = R / R2
+  TanTheta1 = HspHr / R
+  Tk = zerDegCelsius_inKelvin + celsius_degrees_det #NOT SURE IF WE NEED TO CHANGE THESE VARIABLE NAMES
+  Cs = Co * math.sqrt(Tk / zerDegCelsius_inKelvin)
+  Bef = math.exp(math.log(2) / 6)
+  Mu = (Bef - 1 / Bef) / 2
+  Eta = (Bef + 1 / Bef) / 2
+  Rhoa = 0.747
+  Rhod = 0.747
+  L = 1.1
+  I1c = math.sqrt(Pi) * Em2 * R1 * L
+
+  for I in range(24):
+    freq = freq[I]
+    K1 = 2 * Pi * freq / Cs
+    K1dr = K1 * Dr
+    Del = R1 / (K1 * L * L)
+    Omega = math.sqrt(1 + 1 / (Del * Del)) - 1
+    Dom1 = Del * Omega
+    Dom2 = Del * math.sqrt(2 * Omega)
+    At = math.atan(Dom1 / (1 - Dom2)) - math.atan(Dom1 / (1 + Dom2))
+    L1 = 0.5 * Dom1 * math.log((1 + Dom2) / Abs(1 - Dom2)) + At
+    I1 = I1c * K1 * K1
+    I2 = 0.5 * I1 * L1 / ((Dom1 + Del) * Dom2)
+    Sd2 = 0.5 * (I1 + I2)
+    X = 0.5 * (I1 - I2)
+    if(X > 1):
+      Ea2 = 0.27 * math.exp(math.log(X) * 0.33)
+    else:
+      Ea2 = X / (1 + 11 * X / 4)
+    #Functions we need for this portion: ComplexDiv, ComplexMul, Polar
+    Lnfos = math.log(freq / Sigma)
+    Rrc = 1 + 9.08 * math.exp(-0.75 * Lnfos)
+    Xrc = 11.9 * math.exp(-0.73 * Lnfos)
+    Done = ComplexDiv(1, 0, Rrc, Xrc, Rzr, Rzi)
+    Done = ComplexDiv(SinTheta1 - Rzr, -Rzi, SinTheta1 + Rzr, Rzi, Rpr, Rpi)
+    Done = ComplexMul(SinTheta1 + Rzr, Rzi, SinTheta1 + Rzr, Rzi, Srzr, Srzi)
+    Done = ComplexDiv(Srzr, Srzi, 1 + SinTheta1 * Rzr, SinTheta1 * Rzi, Czr, Czi)
+    Done = ComplexMul(0, 0.5 * K1 * R2, Czr, Czi, Wr, Wi)
+    Done = Polar(Wr, Wi, Wm, Wp)
+    if(Wm < 6):
+      Intg = 3
+      Fact = 1
+      Wsr = Wr
+      Wsi = Wi
+      W1r = Wr
+      W1i = Wi
+      for J in range(1, 12):
+        Fact = Fact * J
+        Cons = Fact * Intg
+        Done = ComplexMul(Wr, Wi, W1r, W1i, W2r, W2i)
+        Wsr = Wsr + W2r / Cons
+        Wsi = Wsi + W2i / Cons
+        W1r = W2r
+        W1i = W2i
+        Intg = Intg + 2
+      Ewr = math.exp(-Wr)
+      Ewrr = Ewr * math.cos(Wi)
+      Ewri = -Ewr * math.sin(Wi)
+      Whm = math.sqr(Pi * Wm)
+      Whp = Wp / 2
+      Whr = Whm * math.cos(Whp + Pi / 2)
+      Whi = Whm * math.sin(Whp + Pi / 2)
+      Done = ComplexMul(Ewrr, Ewri, Whr - 2 * Wsr, Whi - 2 * Wsi, Ws1r, Ws1i)
+      Fr = 1 + Ws1r
+      Fi = Ws1i
+    else:
+        Done = ComplexDiv(1, 0, 2 * Wr, 2 * Wi, W1r, W1i)
+        Done = ComplexMul(W1r, W1i, W1r, W1i, W2r, W2i)
+        Wsr = W1r + 3 * W2r
+        Wsi = W1i + 3 * W2i
+        Done = ComplexMul(W1r, W1i, W2r, W2i, W3r, W3i)
+        Wsr = Wsr + 15 * W3r
+        Wsi = Wsi + 15 * W3i
+        Fr = -Wsr
+        Fi = -Wsi
+    Done = ComplexMul(Fr, Fi, 1 - Rpr, -Rpi, Q1r, Q1i)
+    'Done = Polar(Fr, Fi, Fm, Fp)'
+    Qr = Rpr + Q1r
+    Qi = Rpi + Q1i
+    Done = Polar(Qr, Qi, Qm, Qp)
+    Mkdr = Mu * K1dr
+    Sinc = math.sin(Mkdr) / Mkdr
+    Cost = math.cos(Eta * K1dr + Qp)
+    Qmr = Qm * R12
+    I3 = (1 + Ea2) * (1 + Qmr * Qmr) + 2 * Qmr * (1 + Ea2 * Rhoa) * Cost * Sinc * math.exp(-Sd2 * (1 - Rhod))
+    ground_effect[I] = TenDivLog10 * math.log(I3)
+    
 
 def ansi_humidity():
     TOO = 273.15
@@ -111,6 +205,30 @@ def inverse_distance(s8, s3, d3, d4):
         if (s8[i] == 0):
             s8[i] = -0.001
         s3[i] = s8[i]
+        
+ def ground_effect():
+     height_source = source_height_det
+     height_listener = listener_height_det
+     R = detection_dist
+     Sigma = SigmaDet
+     Em2 = Em2Det
+     TrgHgt = height_source
+     DetHgt = height_listener
+     windspeed = wind_speed
+     Iwthr1 = 0
+     if (Iwthr1 == 0):
+         # calls Ingard()
+         if (windspeed >= 0):
+             for i in range(24):
+                 prop_loss_indiv[i] = ground_effect_ingard[i] - gournd_effect_initial[i]
+                 if (prop_loss_indiv[i] == 0):
+                     prop_loss_indiv[i] = -0.01
+                 prop_loss_cum[i] = prop_loss_cum[i] + prop_loss_indiv[i]
+         else:
+             for i in range(24):
+                 if (prop_loss_indiv[i] == 0):
+                     prop_loss_indiv[i] = -0.001
+                 prop_loss_indiv[i] = ground_effect_ingard[i] - ground_effect_initial[i]
 
 """The variables that are used in this function are described as:
 
@@ -189,14 +307,49 @@ ground_effect_reference(26) is 'Reference Ground Effect during measurement' from
 """
 def reference_calc(ground_effect_ref):
     for I in range(0,23):
-        ground_effect_ref(I) = ground_effect(I)
+        ground_effect_ref[I] = ground_effect(I)
         AtmAbsRef(I) = atmos_absorption(I)
-
 
 
 def calculate_measure_dist(detection_dist: float):
     return detection_dist * 25.0
 
+
+def binary_search_A(dBa, m_meas_distance, precision_fraction, D6, D5):
+    z9 = -1
+    detection_dist = m_meas_distance * 25
+    prop_loss = prop_loss_cum(23)
+    Ea = 0
+
+    while prop_loss < dBa:
+        D5 = detection_dist
+        detection_dist = 2 * detection_dist
+        D6 = detection_dist
+
+        for x in range(0, 23):
+            Ea += Log10Div10 * target_spectrum(x) + prop_loss_cum(x) + A_weight_levels(x)
+
+    if z9 == 0:
+        while prop_loss < dBa:
+            D5 = detection_dist
+            detection_dist = 2 * detection_dist
+            D6 = detection_dist
+
+            for x in range(0, 23):
+                Ea += Log10Div10 * target_spectrum(x) + prop_loss_cum(x) + A_weight_levels(x)
+
+
+    while abs(D6 - D5) < precision_fraction * detection_dist:
+        detection_dist = (D5 + D6) / 2
+        for x in range(0, 23):
+            Ea += Log10Div10 * target_spectrum(x) + prop_loss_cum(x) + A_weight_levels(x)
+
+        prop_loss = TenDivLog10 *  log(Ea, 2)
+
+        if prop_loss > dBa:
+            D5 = detection_dist
+        else:
+            D6 = detection_dist
 
 
 # Main Function Declaration and Call
