@@ -2,7 +2,6 @@
 #For now it is set at constants, these will be adjusted based on user/program input in the future
 
 meas_cons = {
-    'source_height_meas': 1.2,
     'mic_height_meas':  1.2,
     'celsius_degrees_meas': 15,
     'relative_humid_percent_meas': 70,
