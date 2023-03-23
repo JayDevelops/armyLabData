@@ -40,9 +40,10 @@ lis_cons = {
 }
 
 given_cons = {
+    'm_measure_dist': 30,
     'lis_dist_given': 30,
     'dba_given': 55,
-    'trg_name': 'Drone',
+    'trg_name': 'M60 Tank idling at 30 meters',
     'bkg_name': 'Urban',
     'hth_name': 'ISO std',
 }

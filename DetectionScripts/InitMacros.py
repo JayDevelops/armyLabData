@@ -1,4 +1,0 @@
-
-
-def ex():
-    print("hello")
