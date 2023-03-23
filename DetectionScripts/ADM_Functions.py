@@ -140,34 +140,42 @@ def Barrier():
 
 
 def Foliage(N1, D4, W1, W2, Fl, Cs, Al, S4, S8, S3):
-    Fo = [-0.001] * 24
+    #-------->>>> needs detection distance and freq fixed up
+    fol_atten = [-0.001] * 24
     Fo_list = []
-
-    if N1 > 0:
+    foliated_zone_nums = data_dict.det_cons['foliage_on']
+    distance_frmSource_to_fol = data_dict.det_cons['foliage_dist']
+    foliage_depth = data_dict.det_cons['foliage_depth']
+    leaf_width = data_dict.det_cons['leaf_width']
+    leaf_areapervol = data_dict.det_cons['leaf_areapervol']
+    prop_loss_indiv = []
+    prop_loss_cum = []
+    
+    if foliated_zone_nums > 0:
         # If detection distance is greater than the distance from source to edge of foliage
-        if D4 > W1:
+        if detection_dist > distance_frmSource_to_fol:
             # Sets the distance difference to X2
-            X2 = D4 - W1
+            X2 = detection_dist  - distance_frmSource_to_fol
             # If the new detection distance is greater than depth (extent) of foliage in meters
-            if X2 > W2:
+            if X2 > foliage_depth:
                 # Set distance the depth (extent) of foliage in meters
-                X2 = W2
+                X2 = foliage_depth
             X2 = math.sqrt(X2)
             Cons = 2.647 / math.log(10)
 
             for I in range(10, 24):
-                Ka = (2 * math.pi * S4[I] / Cs) * Al / 100
+                Ka = (2 * math.pi * freq[I] / Cs) * leaf_width / 100
                 if Ka < 0.401:
-                    Fo[I] = -0.01
+                    fol_atten[I] = -0.01
                 elif Ka < 5:
-                    Fo[I] = -X2 * math.sqrt(Fl) * (Cons * math.log(Ka) + 1.05)
+                    fol_atten[I] = -X2 * math.sqrt(leaf_areapervol) * (Cons * math.log(Ka) + 1.05)
                 else:
-                    Fo[I] = -X2 * math.sqrt(Fl) * 2.9
-                Fo_list.append(Fo)
+                    fol_atten[I] = -X2 * math.sqrt(leaf_areapervol) * 2.9
+                Fo_list.append(fol_atten)
     else:
         for I in range(0, 24):
-            S8[I] = Fo[I]
-            S3[I] = S3[I] + S8[I]
+            prop_loss_indiv[I] = fol_atten[I]
+            prop_loss_cum[I] = prop_loss_cum[I] + prop_loss_indiv[I]
             Fo_list.append(S3)
     return Fo_list
 
@@ -268,13 +276,20 @@ def ansi_humidity():
 
 def atmosphere(s3, s8, atm_abs, atm_abs_ref):
     ansi_humidity()
+    
+    prop_loss_indiv = []
+    atmos_absorption = []
+    atm_abs_ref = []
+    prop_loss_cum = []
+    
 
     for i in range(24):
-        s8[i] = atm_abs[i] - atm_abs_ref[i] #only place I see AtmAbsRef initialized is in Reference Calc(), but is just iniliatized to AtmAbs[i]
+        atm_abs_ref[i] = atmos_absorption[i]
+        prop_loss_indiv[i] = atmos_absorption[i] - atm_abs_ref[i] #only place I see AtmAbsRef initialized is in Reference Calc(), but is just iniliatized to AtmAbs[i]
 
-        if (s8[i] == 0):
-            s8[i] = -0.001
-        s3[i] = s3[i] + s8[i]
+        if (prop_loss_indiv[i] == 0):
+            prop_loss_indiv[i] = -0.001
+        prop_loss_cum[i] = prop_loss_cum[i] + prop_loss_indiv[i]
 
         
 def signal_noise():
