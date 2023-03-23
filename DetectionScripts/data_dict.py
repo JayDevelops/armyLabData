@@ -22,7 +22,7 @@ det_cons = {
     'wind_direction': 'UP',
     'barrier_on': False,
     'barrier_dist': 1,
-    'barrier_height': 2,
+    'barrier_height': 2, 
     'foliage_on': False,
     'foliage_dist': 1,
     'foliage_depth': 100,
@@ -41,6 +41,7 @@ lis_cons = {
 }
 
 given_cons = {
+    'm_measure_distance' : 30,
     'lis_dist_given': 30,
     'dba_given': 55,
     'trg_name': 'Drone',
