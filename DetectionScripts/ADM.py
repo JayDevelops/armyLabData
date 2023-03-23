@@ -424,22 +424,22 @@ def initMacros():
     A1 = 0.001
 
     # m Source Height meas
-    h2ref = pd.read_excel(excel_file, sheet_name='Model', usecols='A', nrows=3).iloc[-2, 0]
+    h2ref = det_cons['source_height_det']
 
     # m Mic Height meas
-    h3ref = pd.read_excel(excel_file, sheet_name='Model', usecols='B', nrows=3).iloc[-2, 0]
+    h3ref = det_cons['listener_height_det']
 
     # Deg C meas
-    tRef = pd.read_excel(excel_file, sheet_name='Model', usecols='D', nrows=3).iloc[-2, 0]
+    tRef = det_cons['celsius_degrees_det']
 
     # % r.h. meas
-    hRef = pd.read_excel(excel_file, sheet_name='Model', usecols='E', nrows=3).iloc[-2, 0]
+    hRef = det_cons['relative_humid_percent_det']
 
     # m Flow resistivity meas
-    sigmaRef = pd.read_excel(excel_file, sheet_name='Model', usecols='F', nrows=3).iloc[-2, 0]
+    sigmaRef = det_cons['sigma_det']
 
     # Em2 turbulence factor meas
-    em2Ref = pd.read_excel(excel_file, sheet_name='Model', usecols='G', nrows=3).iloc[-2, 0]
+    em2Ref = det_cons['em2_det']
 
     t1 = tRef
     h1 = hRef
@@ -448,64 +448,67 @@ def initMacros():
     reference_calc()
 
     # m Source Height det
-    h2 = pd.read_excel(excel_file, sheet_name='Model', usecols='H', nrows=3).iloc[-2, 0]
+    h2 = det_cons['source_height_det']
 
     # m Listener Height det
-    h3 = pd.read_excel(excel_file, sheet_name='Model', usecols='I', nrows=3).iloc[-2, 0]
+    h3 = det_cons['listener_height_det']
 
     # Deg C det
-    t1 = pd.read_excel(excel_file, sheet_name='Model', usecols='J', nrows=3).iloc[-2, 0]
+    t1 = det_cons['celsius_degrees_det']
 
     # % r.h. det
-    h1 = pd.read_excel(excel_file, sheet_name='Model', usecols='K', nrows=3).iloc[-2, 0]
+    h1 = det_cons['relative_humid_percent_det']
 
     # m Flow resistivity det
-    sigmaDelt = pd.read_excel(excel_file, sheet_name='Model', usecols='L', nrows=3).iloc[-2, 0]
+    sigmaDelt = det_cons['sigma_det']
 
     # Em2 turbulence factor det
-    em2Det = pd.read_excel(excel_file, sheet_name='Model', usecols='M', nrows=3).iloc[-2, 0]
+    em2Det = det_cons['em2_det']
 
     # Wind speed det
-    windSpeed = pd.read_excel(excel_file, sheet_name='Model', usecols='N', nrows=3).iloc[-2, 0]
+    windSpeed = det_cons['wind_speed']
 
     # Observer efficiency
-    e1 = pd.read_excel(excel_file, sheet_name='Model', usecols='R', nrows=3).iloc[-2, 0]
+    e1 = lis_cons['observer_efficiency']
 
     # Hit prob
-    p1 = pd.read_excel(excel_file, sheet_name='Model', usecols='S', nrows=3).iloc[-2, 0]
+    p1 = lis_cons['hit_prob']
 
     # False alarm prop
-    p2 = pd.read_excel(excel_file, sheet_name='Model', usecols='T', nrows=3).iloc[-2, 0]
+    p2 = lis_cons['false_alarm_rate']
 
     # Calculate d' statistic
-    D1 = pd.read_excel(excel_file, sheet_name='Model', usecols='U', nrows=3).iloc[-2, 0]
+    D1 = lis_cons['d_stat']
+
+
 
     windFlag = 0
     windDir = "Upwind"
 
     # barrier? 0 or 1
-    b9 = pd.read_excel(excel_file, sheet_name='Model', usecols='H', nrows=5).iloc[-2, 0]
+    b9 = det_cons['barrier_on']
 
     # distance from source m
-    b7 = pd.read_excel(excel_file, sheet_name='Model', usecols='I', nrows=5).iloc[-2, 0]
+    b7 = det_cons['barrier_dist']
 
     # height m
-    b8 = pd.read_excel(excel_file, sheet_name='Model', usecols='J', nrows=5).iloc[-2, 0]
+    b8 = det_cons['barrier_height']
 
     # foliage? 0 or 1
-    N1 = pd.read_excel(excel_file, sheet_name='Model', usecols='K', nrows=5).iloc[-2, 0]
+    N1 = det_cons['foliage_on']
 
     # distance in meters from source to near edge of foliage
-    W1 = pd.read_excel(excel_file, sheet_name='Model', usecols='L', nrows=5).iloc[-2, 0]
+    W1 = det_cons['foliage_dist']
 
     # depth (extent) of foliage in meters
-    W2 = pd.read_excel(excel_file, sheet_name='Model', usecols='M', nrows=5).iloc[-2, 0]
+    W2 = det_cons['foliage_depth']
 
     # leaf area per unit vol dense hardwood brush in m^-1
-    Fl = pd.read_excel(excel_file, sheet_name='Model', usecols='N', nrows=5).iloc[-2, 0]
+    Fl = det_cons['leaf_areapervol']
 
     # average leaf width in cm
-    Al = pd.read_excel(excel_file, sheet_name='Model', usecols='O', nrows=5).iloc[-2, 0]
+    Al = det_cons['leaf_width']
+   
 
     # Type of surface
     F7 = 1
