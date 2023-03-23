@@ -280,7 +280,30 @@ def Barrier():
         prop_loss_indiv(i) = barrier_attenuation(i)
         prop_loss_cum(i) = prop_loss_cum(i) + prop_loss_indiv(i)
 
+def polar(X, Y, R, Th):
+    R = math.sqrt(X * X + Y + Y)
+    Th = math.atan2(X, Y)
+    polar = 1
 
+def signal_noise():
+    for i in range(24):
+        if (i > 10):
+            detection_band[i] = target_spectrum[i] + prop_loss_cum[i] - max_modBackground_thresh[i]
+        else:
+            E3 = 0
+            for j in range(5):
+                I0 = i + j - 2
+                W4 = one_third_oct_band_weight(i, j)
+                if (W4 > 0 and I0 >= 0):
+                    E3 = E3 + W4 * math.exp(Log10Div10 * (target_spectrum[I0] + prop_loss_cum[I0]))
+            detection_band[i] = TenDivLog10 * math.log[E3] - max_modBackground_thresh[i]
+        listener_spectrum[i] = detection_band[i] + max_modBackground_thresh[i]
+    M2 = detection_band[0]
+    B1 = 0
+    for i in range(1, 24):
+        if (detection_band[i] >= M2):
+            M2 = detection_band[i]
+            B1 = i
 
 def binary_search(m_meas_distance, D5, D6, M2, precision_fraction):
     Z9 = -1
