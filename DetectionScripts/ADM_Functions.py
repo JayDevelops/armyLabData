@@ -23,15 +23,16 @@ def Polar(X, Y, R, Th):
     Polar = 1
 
 
-def inverse_distance(s8, s3, d3, d4):
+def InverseDistance():
     prop_loss_indiv = [] #not sure how to use these prop loss
     prop_loss_cum = [] #not sure how to use these prop loss
     freq = [] #not sure how to use this
+    m_measure_distance = data_dict.given_cons['m_measure_distance']
+    detection_dist = [] #not sure where to get this one from, comes from calculated macros
     
     Log10Div10 = 0.230258509
     TenDivLog10 = 1 / Log10Div10
-    #D4 should be mic distance source m. changes depending on what macro is used. Can also be detect distance
-    p_inv = 2 * TenDivLog10 * math.log(d3 / d4) #Inverse distance loss from D3 to D4. D3 is the mic distance from the target from excel.
+    p_inv = 2 * TenDivLog10 * math.log(m_measure_distance / detection_dist) #Inverse distance loss from D3 to D4. D3 is the mic distance from the target from excel.
 
     for i in range(24):
         prop_loss_indiv[i] = p_inv
@@ -72,20 +73,6 @@ def ground_effect():
                     prop_loss_indiv[i] = -0.001
                 prop_loss_indiv[i] = ground_effect[i] - ground_effect_reference[i]
 
-
-"""The variables that are used in this function are described as:
-barrier_attenuation -> Global array variable (declared in line 35 of VBA Macros). Inititalized for first time inside Barrier()
-detection_dist -> Global 'double' variable (declared in line 13 of VBA Macros). It is also used in GroundEffect() on line 186
-distance_from_source -> initialized from excel cell "I5" (line 579)
-barrier_height_det -> initialized from excel cell "J5" (line 580)
-source_height_det -> initialized from excel cell "H3" (line 564)
-listener_height_det -> initialized from excel cell "I3" (line 565)
-celsius_degrees_det -> initialized from excel cell "J3" (line 566)
-TenDivLog10 -> Static number (described in lines 546 and 547)
-freq -> Global integer array declared in line 21. Looks like initialized in InitMacros as 'A' column values of Data Sheet (aka freq Hz)
-prop_loss_indiv -> Global 'double' array declared in line 25. Is used in many functions, and changes based on the actions of those functions
-prop_loss_cum -> Global 'double' array declared in line 20. Is used to hold value after all changes to prop_loss_indiv throughout the program.  
-"""
 
 def Barrier():
     barr_atten = []
@@ -139,17 +126,21 @@ def Barrier():
 
 
 
-def Foliage(N1, D4, W1, W2, Fl, Cs, Al, S4, S8, S3):
+def Foliage():
     #-------->>>> needs detection distance and freq fixed up
     fol_atten = [-0.001] * 24
-    Fo_list = []
+    detection_dist = [] #still not sure where this one comes from
+    Fo_list = [] #looks like a local array that Bruck created to hold the prop_loss_cum, not sure if we need it
+    freq = [] #not sure about this one (know its just the freq band in col A in Data)
     foliated_zone_nums = data_dict.det_cons['foliage_on']
     distance_frmSource_to_fol = data_dict.det_cons['foliage_dist']
     foliage_depth = data_dict.det_cons['foliage_depth']
     leaf_width = data_dict.det_cons['leaf_width']
     leaf_areapervol = data_dict.det_cons['leaf_areapervol']
+    celsius_degrees_det = data_dict.det_cons['celsius_degrees_det']
     prop_loss_indiv = []
     prop_loss_cum = []
+    Cs = 331.4 * math.sqrt(1 + celsius_degrees_det / 273.15) #<-------------- I believe this is brought in from Barrier (in the macros, Barrier is called before Foliage, then this Cs variable is used in Foliage without being initialized), but also given a different value in ingard
     
     if foliated_zone_nums > 0:
         # If detection distance is greater than the distance from source to edge of foliage
@@ -176,24 +167,35 @@ def Foliage(N1, D4, W1, W2, Fl, Cs, Al, S4, S8, S3):
         for I in range(0, 24):
             prop_loss_indiv[I] = fol_atten[I]
             prop_loss_cum[I] = prop_loss_cum[I] + prop_loss_indiv[I]
-            Fo_list.append(S3)
+            Fo_list.append(prop_loss_cum)
     return Fo_list
 
 
-def normal_deviate(p):
+def NormalDeviate(p):
     t = math.sqrt(-2 * math.log(p))
     return t - (2.30753 + t * 0.27061) / (1 + t * (0.99229 + t * 0.04481))
 
 
-def Dprime(hit_prob, NormalDeviate, false_alarm_rate, mod_background_noise, background_noise_spec, 
-           TenDivLog10, observer_efficiency, B3, one_third_oct_band_weight, Log10Div10, hearing_threshold,
-           max_modBackground_thresh, mod_background_noise_2):
-    """
-    Functions called in Dprime -> NormalDeviate, mod_background_noise, background_noise_spec, B3,
-    one_third_oct_band_weight, max_modBackground_thresh, hearing_threshold, mod_background_noise_2
+def Dprime():
+    #is this function supposed to return anything?
     
-    ***The rest in parameter list are variables
-    """
+    hit_prob = data_dict.lis_cons['hit_prob']
+    false_alarm_rate = data_dict.lis_cons['hit_prob']
+    mod_background_noise = [] # Corresponds with 'Bkg Cb' in calculated Macros (for example, in Detection Distance, its cells M8-M31)
+    background_noise_spec = [] #From Data sheet, background noise (AKA Urban environment)
+    observer_efficiency = data_dict.lis_cons['observer_efficiency']
+    B3 = [] #from Data sheet,  Col AI
+    one_third_oct_band_weight = [] #arrays from 'Data' cols AD - AH
+    hearing_threshold = data_dict.given_cons['hth_name']
+    max_modBackground_thresh = [] #Corresponds with 'Max Bkg/Thr' in calculated macros (ex: cells N8 - N31 in Detection Distance)
+    mod_background_noise_2 =[] #Just holds the modified value for max_modBackground_thresh given in line 250
+    
+    
+    
+    Log10Div10 = 0.230258509
+    TenDivLog10 = 1 / Log10Div10
+    prop_loss_indiv = [] #not sure how to use these prop loss
+    prop_loss_cum = []
 
     if(hit_prob > 0.5):
         Z3 = NormalDeviate(1 - hit_prob)
@@ -214,25 +216,25 @@ def Dprime(hit_prob, NormalDeviate, false_alarm_rate, mod_background_noise, back
     else:
         calculate_d = Z - Z3
         
-    Dprime = calculate_d
-    for I in range(24):
-        if(I > 10):
-            mod_background_noise[I] = background_noise_spec(I) + TenDivLog10 * math.log(calculate_d / observer_efficiency / B3(I))
+    Dprime = calculate_d #Not sure why this is a variable here <-----------
+    for i in range(24):
+        if(i > 10):
+            mod_background_noise[i] = background_noise_spec[i] + TenDivLog10 * math.log(calculate_d / observer_efficiency / B3[i])
         else:
             E4 = 0
-            for J in range(5):
-                I0 = I + J - 2
-                W4 = one_third_oct_band_weight(I, J)
+            for j in range(5):
+                I0 = i + j - 2
+                W4 = one_third_oct_band_weight[i, j]
                 if((W4 > 0) and (I0 >= 0)):
-                    E4 += W4 * math.exp(Log10Div10 * background_noise_spec(I0))
-            mod_background_noise[I] = TenDivLog10 * math.log(E4 * calculate_d / observer_efficiency / B3(I))
+                    E4 += W4 * math.exp(Log10Div10 * background_noise_spec[I0])
+            mod_background_noise[i] = TenDivLog10 * math.log(E4 * calculate_d / observer_efficiency / B3[i])
             
-        if(hearing_threshold(I) > mod_background_noise(I)):
-            max_modBackground_thresh[I] = hearing_threshold(I)
+        if(hearing_threshold[i] > mod_background_noise[i]):
+            max_modBackground_thresh[i] = hearing_threshold[i]
         else:
-            max_modBackground_thresh[I] = mod_background_noise(I)
+            max_modBackground_thresh[i] = mod_background_noise[i]
             
-        mod_background_noise_2[I] = max_modBackground_thresh(I)
+        mod_background_noise_2[i] = max_modBackground_thresh[i]
         
         
 
@@ -274,7 +276,7 @@ def ansi_humidity():
 
 
 
-def atmosphere(s3, s8, atm_abs, atm_abs_ref):
+def Atmosphere(s3, s8, atm_abs, atm_abs_ref):
     ansi_humidity()
     
     prop_loss_indiv = []
@@ -292,7 +294,17 @@ def atmosphere(s3, s8, atm_abs, atm_abs_ref):
         prop_loss_cum[i] = prop_loss_cum[i] + prop_loss_indiv[i]
 
         
-def signal_noise():
+def SignalNoise():
+    #does this function return anything? M2?
+    prop_loss_cum = []
+    detection_band = [] #Local variable to this function, just holds the calculations, and gives to M2 (which is used in Binary Search)
+    target_spectrum = data_dict.given_cons['trg_name']
+    max_modBackground_thresh = [] #Corresponds with 'Max Bkg/Thr' in calculated macros (ex: cells N8 - N31 in Detection Distance)
+    one_third_oct_band_weight = [] #arrays from 'Data' cols AD - AH
+    listener_spectrum = [] #Corresponds with green-colored Listener col K in Macros calculation (ex: K8-K31)
+    Log10Div10 = 0.230258509
+    TenDivLog10 = 1 / Log10Div10
+    
     for i in range(24):
         if (i > 10):
             detection_band[i] = target_spectrum[i] + prop_loss_cum[i] - max_modBackground_thresh[i]
@@ -369,11 +381,17 @@ def Ingard():
     Lnfos = math.log(freq / Sigma)
     Rrc = 1 + 9.08 * math.exp(-0.75 * Lnfos)
     Xrc = 11.9 * math.exp(-0.73 * Lnfos)
+    Rzr, Rzi = 0
     Done = ComplexDiv(1, 0, Rrc, Xrc, Rzr, Rzi)
+    Rpr, Rpi = 0
     Done = ComplexDiv(SinTheta1 - Rzr, -Rzi, SinTheta1 + Rzr, Rzi, Rpr, Rpi)
+    Srzr, Srzi = 0
     Done = ComplexMul(SinTheta1 + Rzr, Rzi, SinTheta1 + Rzr, Rzi, Srzr, Srzi)
+    Czr, Czi = 0
     Done = ComplexDiv(Srzr, Srzi, 1 + SinTheta1 * Rzr, SinTheta1 * Rzi, Czr, Czi)
+    Wr, Wi = 0
     Done = ComplexMul(0, 0.5 * K1 * R2, Czr, Czi, Wr, Wi)
+    Wm, Wp = 0
     Done = Polar(Wr, Wi, Wm, Wp) #Means Wm = Sqr((Wr * Wr) + (Wi * Wi)) // and Wp = math.atan2(Wr, Wi)
     if(Wm < 6):
         Intg = 3
@@ -385,6 +403,7 @@ def Ingard():
         for J in range(1, 12):
             Fact = Fact * J
             Cons = Fact * Intg
+            W2r, W2i = 0
             Done = ComplexMul(Wr, Wi, W1r, W1i, W2r, W2i)
             Wsr = Wsr + W2r / Cons
             Wsi = Wsi + W2i / Cons
@@ -398,6 +417,7 @@ def Ingard():
         Whp = Wp / 2
         Whr = Whm * math.cos(Whp + Pi / 2)
         Whi = Whm * math.sin(Whp + Pi / 2)
+        Ws1r, Ws1i = 0
         Done = ComplexMul(Ewrr, Ewri, Whr - 2 * Wsr, Whi - 2 * Wsi, Ws1r, Ws1i)
         Fr = 1 + Ws1r
         Fi = Ws1i
@@ -406,15 +426,18 @@ def Ingard():
         Done = ComplexMul(W1r, W1i, W1r, W1i, W2r, W2i)
         Wsr = W1r + 3 * W2r
         Wsi = W1i + 3 * W2i
+        W3r, W3i = 0
         Done = ComplexMul(W1r, W1i, W2r, W2i, W3r, W3i)
         Wsr = Wsr + 15 * W3r
         Wsi = Wsi + 15 * W3i
         Fr = -Wsr
         Fi = -Wsi
+        Q1r, Q1i = 0
     Done = ComplexMul(Fr, Fi, 1 - Rpr, -Rpi, Q1r, Q1i)
     'Done = Polar(Fr, Fi, Fm, Fp)'
     Qr = Rpr + Q1r
     Qi = Rpi + Q1i
+    Qm, Qp = 0
     Done = Polar(Qr, Qi, Qm, Qp)
     Mkdr = Mu * K1dr
     Sinc = math.sin(Mkdr) / Mkdr
@@ -429,7 +452,14 @@ def Ingard():
 
 
 
-def binary_search(m_meas_distance, D5, D6, M2, precision_fraction):
+def binary_search():
+    #does this return anything?
+    m_meas_distance = data_dict.given_cons['m_measure_distance']
+    detection_dist = [] #not sure about this one, since it is calculated inside a macro
+    precision_fraction = 0.001
+    M2 = SignalNoise() #This value is calculated in Signal Noise function
+    
+    
     Z9 = -1
     detection_dist = m_meas_distance * 25
 
@@ -473,36 +503,46 @@ def Reverse():
 
     
 def targetdBA():
-    log_10_div_10 = 0.230258509
-    ten_divided_by_log_10 = 1 / log_10_div_10
-
-    E = float()
+    
+    Log10Div10 = 0.230258509
+    TenDivLog10 = 1 / Log10Div10
+    target_spectrum = [] #Col B from Data
+    A_weight_levels = [] # Col AJ from Data
     E = 0.0
-    for x in range(23):
-        E = E + math.exp(log_10_div_10 * (S1[x] + S10[x]))
+    
+    for i in range(24):
+        E = E + math.exp(Log10Div10 * (target_spectrum[i] + A_weight_levels[i]))
 
-    targetdBA_result = ten_divided_by_log_10 * math.log(E)
+    targetdBA_result = TenDivLog10 * math.log(E)
 
     return targetdBA_result
 
 
 def BkgdBA():
-     E = float()
-     E = 0.0
+    Log10Div10 = 0.230258509
+    TenDivLog10 = 1 / Log10Div10
+    E = 0.0
+    background_noise_spec = [] #background noise from Data sheet (Col M)
+    A_weight_levels = [] #A weight levels from Data sheet (Col AJ)
      
-     for I in range(0,23):
-         E = E + math.exp(Log10Div10 * (S6[I] + S10[I]))
+    for i in range(24):
+         E = E + math.exp(Log10Div10 * (background_noise_spec[i] + A_weight_levels[i]))
          
-     bkgdba_return = TenDivLog10 * math.log(E)
+    bkgdba_return = TenDivLog10 * math.log(E)
      
-     return bkgdba_return    
+    return bkgdba_return    
  
  
 def ListenerdBA():
-    E = float()
+    Log10Div10 = 0.230258509
+    TenDivLog10 = 1 / Log10Div10
     E = 0.0
-    for I in range(0, 23):
-        E = E + math.exp(Log10Div10 * (S1[I] + S3[I] + S10[I]))
+    target_spectrum = [] #Data Col B
+    prop_loss_cum = [] #
+    A_weight_levels = [] # Col AJ
+    
+    for i in range(24):
+        E = E + math.exp(Log10Div10 * (target_spectrum[i] + prop_loss_cum[i] + A_weight_levels[i]))
     listener_dba_return = TenDivLog10 * math.log(E)
     return listener_dba_return
 
@@ -511,10 +551,22 @@ def calculate_measure_dist(detection_dist: float):
     return detection_dist * 25.0
 
 
-def binary_search_A(dBa, m_meas_distance, precision_fraction, D6, D5):
+def binary_search_A():
+    #can you double check this function, and does it need to return anything?
+    prop_loss_cum = []
+    m_meas_distance = data_dict.given_cons['m_measure_distance']
+    target_spectrum = data_dict.given_cons['trg_name']
+    dBa = data_dict.given_cons['dba_given']
+    A_weight_levels = [] # Col AJ
+    precision_fraction = 0.001
+    Log10Div10 = 0.230258509
+    TenDivLog10 = 1 / Log10Div10
+    
+    
+    
     z9 = -1
     detection_dist = m_meas_distance * 25
-    prop_loss = prop_loss_cum(23)
+    prop_loss = prop_loss_cum(23) # <------------ Not sure about this line, not sure if it follows the logic
     Ea = 0
 
     while prop_loss < dBa:
@@ -522,8 +574,8 @@ def binary_search_A(dBa, m_meas_distance, precision_fraction, D6, D5):
         detection_dist = 2 * detection_dist
         D6 = detection_dist
 
-        for x in range(0, 23):
-            Ea += Log10Div10 * target_spectrum(x) + prop_loss_cum(x) + A_weight_levels(x)
+        for i in range(24):
+            Ea += Log10Div10 * target_spectrum[i] + prop_loss_cum[i] + A_weight_levels[i]
 
     if z9 == 0:
         while prop_loss < dBa:
@@ -531,16 +583,16 @@ def binary_search_A(dBa, m_meas_distance, precision_fraction, D6, D5):
             detection_dist = 2 * detection_dist
             D6 = detection_dist
 
-            for x in range(0, 23):
-                Ea += Log10Div10 * target_spectrum(x) + prop_loss_cum(x) + A_weight_levels(x)
+            for i in range(24):
+                Ea += Log10Div10 * target_spectrum[i] + prop_loss_cum[i] + A_weight_levels[i]
 
 
     while abs(D6 - D5) < precision_fraction * detection_dist:
         detection_dist = (D5 + D6) / 2
-        for x in range(0, 23):
-            Ea += Log10Div10 * target_spectrum(x) + prop_loss_cum(x) + A_weight_levels(x)
+        for i in range(24):
+            Ea += Log10Div10 * target_spectrum[i] + prop_loss_cum[i] + A_weight_levels[i]
 
-        prop_loss = TenDivLog10 *  log(Ea, 2)
+        prop_loss = TenDivLog10 *  math.log(Ea, 2)
 
         if prop_loss > dBa:
             D5 = detection_dist
@@ -550,7 +602,7 @@ def binary_search_A(dBa, m_meas_distance, precision_fraction, D6, D5):
 
 def Propagate():
     InverseDistance()
-    GroundEffect()
+    ground_effect()
     Barrier()
     Foliage()
     Atmosphere()
