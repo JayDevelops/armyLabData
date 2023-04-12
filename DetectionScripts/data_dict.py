@@ -2,7 +2,6 @@
 #For now it is set at constants, these will be adjusted based on user/program input in the future
 
 meas_cons = {
-    'source_height_meas': 1.2,
     'mic_height_meas':  1.2,
     'celsius_degrees_meas': 15,
     'relative_humid_percent_meas': 70,
@@ -22,7 +21,7 @@ det_cons = {
     'wind_direction': 'UP',
     'barrier_on': False,
     'barrier_dist': 1,
-    'barrier_height': 2, 
+    'barrier_height': 2,
     'foliage_on': False,
     'foliage_dist': 1,
     'foliage_depth': 100,
@@ -41,10 +40,10 @@ lis_cons = {
 }
 
 given_cons = {
-    'm_measure_distance' : 30,
+    'm_measure_distance': 30,
     'lis_dist_given': 30,
     'dba_given': 55,
-    'trg_name': 'Drone',
+    'trg_name': 'M60 Tank idling at 30 meters',
     'bkg_name': 'Urban',
-    'hth_name': 'ISO std',
+    'hth_name': 'ISO Std',
 }

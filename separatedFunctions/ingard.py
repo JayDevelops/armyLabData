@@ -1,3 +1,8 @@
+import pandas as pd  # Install pandas in python or use Anaconda environment
+import math
+from DetectionScripts import data_dict
+from DetectionScripts import ADM_Functions
+
 def Ingard(freq):
     Hs = data_dict.det_cons['source_height_det'] 
     Hr = data_dict.det_cons['listener_height_det'] 

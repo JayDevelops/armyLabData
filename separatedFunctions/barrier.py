@@ -1,3 +1,8 @@
+import pandas as pd  # Install pandas in python or use Anaconda environment
+import math
+from DetectionScripts import data_dict
+from DetectionScripts import ADM_Functions
+
 def Barrier(freq, prop_loss_cum, prop_loss_indiv, detection_dist):
     barr_atten = []
     barr_num = data_dict.det_cons['barrier_on']

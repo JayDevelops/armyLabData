@@ -1,3 +1,8 @@
+import pandas as pd  # Install pandas in python or use Anaconda environment
+import math
+from DetectionScripts import data_dict
+from DetectionScripts import ADM_Functions
+
 def inverse_distance(detection_distance, prop_loss_cum, prop_loss_indiv):
     m_measure_distance = data_dict.given_cons['m_measure_distance']
 

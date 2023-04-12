@@ -1,3 +1,8 @@
+import pandas as pd  # Install pandas in python or use Anaconda environment
+import math
+from DetectionScripts import data_dict
+from DetectionScripts import ADM_Functions
+
 def ground_effect(freq, prop_loss_cum, prop_loss_indiv, ground_effect_ref):
     windspeed = data_dict.det_cons['wind_speed'] #this looks a bit different than the original, not sure if thats ok
     Iwthr1 = 0
