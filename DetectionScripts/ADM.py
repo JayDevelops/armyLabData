@@ -2,6 +2,7 @@ import pandas as pd  # Install pandas in python or use Anaconda environment
 import math
 import data_dict
 import ADM_Functions
+import json
 
 def Detection():
     data_df = pd.read_excel('./DetectionScripts/ADM - from Joel - Sept-2013.xls', sheet_name='Data')
@@ -51,7 +52,12 @@ def main():
     # Possibly implement a switch case to consider user input
     # of which Macro to call
     detection_distance = Detection()
-    print(detection_distance)
+    detection_data = {}
+    detection_data['detection_distance'] = detection_distance
+    with open('detection_data.json', 'w') as f:
+        json.dump(detection_data, f)
+
+    #print(detection_distance)
 
 
 if __name__ == '__main__':

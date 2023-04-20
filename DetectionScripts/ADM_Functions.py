@@ -189,7 +189,7 @@ prop_loss_cum -> Global 'double' array declared in line 20. Is used to hold valu
 """
 
 def Barrier(freq, prop_loss_cum, prop_loss_indiv, detection_dist):
-    barr_atten = []
+    barr_atten = [-0.001] * 24
     barr_num = data_dict.det_cons['barrier_on']
     distance_from_source = data_dict.det_cons['barrier_dist']
     barrier_height_det = data_dict.det_cons['barrier_dist']
@@ -200,8 +200,8 @@ def Barrier(freq, prop_loss_cum, prop_loss_indiv, detection_dist):
     Log10Div10 = 0.230258509
     TenDivLog10 = 1 / Log10Div10
     
-    for i in range(24):
-        barr_atten.append(-0.001)
+    # for i in range(24):
+    #     barr_atten.append(-0.001)
     if barr_num > 0:
         if detection_dist >= distance_from_source:
             Hba = barrier_height_det - (source_height_det + distance_from_source * (listener_height_det) / detection_dist)
@@ -338,7 +338,7 @@ def Dprime(bkg, ht, third_obands, B3):
         else:
             max_modBackground_thresh[I] = mod_background_noise[I]
 
-        return max_modBackground_thresh
+    return max_modBackground_thresh
         
 
 def ansi_humidity(freq):
@@ -416,7 +416,7 @@ def signal_noise(target_spectrum, max_modBkg, third_oband, prop_loss_cum):
         if (detection_band[i] >= M2):
             M2 = detection_band[i]
             B1 = i
-    
+    #print(detection_band)
     return M2, B1, prop_loss_cum
 
 def binary_search(freq, ground_effect_ref, atm_abs, atm_abs_ref, target, max_modBkg, third_oband):
@@ -426,8 +426,7 @@ def binary_search(freq, ground_effect_ref, atm_abs, atm_abs_ref, target, max_mod
     precision_fraction = 0.001
     prop_loss_cum = [0] * 24
     prop_loss_indiv = [0] * 24
-    Z9 = Z9 + 1
-    M2, B1, prop_loss_cum, prop_loss_indiv = Propagate(freq, detection_dist, ground_effect_ref, atm_abs, atm_abs_ref, target, max_modBkg, third_oband, prop_loss_cum, prop_loss_indiv)
+    M2 = 0
 
     while M2 >= 0:
         Z9 = Z9 + 1
@@ -435,15 +434,27 @@ def binary_search(freq, ground_effect_ref, atm_abs, atm_abs_ref, target, max_mod
         detection_dist = 2 * detection_dist
         D6 = detection_dist
         M2, B1, prop_loss_cum, prop_loss_indiv = Propagate(freq, detection_dist, ground_effect_ref, atm_abs, atm_abs_ref, target, max_modBkg, third_oband, prop_loss_cum, prop_loss_indiv)
-        print(M2)
+        
+        #test code to end loop -> M2 is not changing, therefore infinite loop
+        if Z9 == 0:
+            break
+    
+    loop = True
+    counter = 0
 
     if Z9 == 0:
-        while M2 <= 0:
+        # Error in calculation may lie here
+        # while M2 <= 0:
+        while loop:
+            counter+=1
             D6 = detection_dist
             detection_dist = detection_dist / 2
             D5 = detection_dist
             M2, B1, prop_loss_cum, prop_loss_indiv = Propagate(freq, detection_dist, ground_effect_ref, atm_abs, atm_abs_ref, target, max_modBkg, third_oband, prop_loss_cum, prop_loss_indiv)
-
+            
+            #extra code to end loop early
+            if counter > 6:
+                break
     while abs(D6 - D5) >= precision_fraction * detection_dist:
         detection_dist = (D5 + D6) / 2
         M2, B1, prop_loss_cum, prop_loss_indiv = Propagate(freq, detection_dist, ground_effect_ref, atm_abs, atm_abs_ref, target, max_modBkg, third_oband, prop_loss_cum, prop_loss_indiv)
@@ -561,6 +572,5 @@ def Propagate(freq, detection_distance, ground_effect_ref, atm_abs, atm_abs_ref,
     prop_loss_cum, prop_loss_indiv = Foliage(freq, prop_loss_cum, prop_loss_indiv, detection_distance)
     prop_loss_cum, prop_loss_indiv = atmosphere(freq, prop_loss_cum, prop_loss_indiv, atm_abs, atm_abs_ref)
     M2, B1, prop_loss_cum = signal_noise(target, max_modBkg, third_oband, prop_loss_cum)
-
     return M2, B1, prop_loss_cum, prop_loss_indiv
     
